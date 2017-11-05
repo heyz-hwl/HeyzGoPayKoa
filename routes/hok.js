@@ -4,7 +4,7 @@ const jwt = require('../lib/jwt');
 const _ = require('lodash');
 const url = `http://www.lzj.party/wz/`;
 
-router.prefix('/v1/hok')
+router.prefix('/v1')
 
 //获取英雄列表
 router.get('/hero',
@@ -185,7 +185,8 @@ router.get('/hokInfoByUserId',
   async(ctx, next) => {
     try {
       let data = [];
-      let userId = ctx.decode.userId || ctx.query.userId;
+      let userId = _.get(ctx, 'decode.userId', ctx.query.userId);      
+      console.log(`userId is ${userId}`)
       if (!userId) {
         return ctx.body = {
           status: -1,
@@ -203,7 +204,7 @@ router.get('/hokInfoByUserId',
           msg: `no data`
         }
       }
-      result.forEach((item, index) => {
+      result.forEach(async (item, index) => {
         let background = `${url}${heroMap[item.get('hero')[0]]}`;
         item.set('background', background);
         if (item.get('default')) {
