@@ -192,7 +192,7 @@ const draw = (userId, userGrade, user) => {
 
 //抽奖
 router.get('/draw',
-  // jwt.verify,
+  jwt.verify,
   async(ctx, next) => {
     try {
       let userId = _.get(ctx, 'decode.userId', ctx.query.userId);
@@ -277,7 +277,7 @@ router.get(`/draw/kefu`,
 
 //获取皮肤 URL
 router.get('/draw/skinURL',
-  // jwt.verify,
+  jwt.verify,
   async(ctx, next) => {
     try {
       let type = ctx.query.type;
@@ -450,7 +450,7 @@ router.put('/draw/delivery', async(ctx, next) => {
 
 //获取用户获奖记录
 router.get('/draw/record',
-  // jwt.verify,
+  jwt.verify,
   async(ctx, next) => {
     try {
       let userId = _.get(ctx, 'decode.userId', ctx.query.userId);

@@ -69,7 +69,7 @@ const userRoom = (userId) => {
 
 //获取当前房间内的用户信息
 router.get('/audio/userInfo',
-  // jwt.verify,
+  jwt.verify,
   async(ctx, next) => {
     try {
       let roomId = ctx.query.roomId;
@@ -298,7 +298,7 @@ router.put('/audio/roomTitle',
 //需要房主信息
 //如传一个 roomId 则返回该房间的信息
 router.get('/audio/rooms',
-  // jwt.verify,
+  jwt.verify,
   async(ctx, next) => {
     try {
       let data = [];
