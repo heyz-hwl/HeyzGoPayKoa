@@ -9,6 +9,8 @@ const async = require('async');
 const socket = require('../lib/socket');
 const _ = require('lodash');
 
+router.prefix('v1')
+
 //用户登录记录
 router.get('/audio/userChannel', (req, res) => {
   let userId = req.query.userId;

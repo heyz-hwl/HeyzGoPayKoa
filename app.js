@@ -11,6 +11,7 @@ const users = require('./routes/users')
 const hok = require('./routes/hok').router
 const draw = require('./routes/draw')
 const room = require('./routes/audioRoom')
+const channel = require('./routes/audioChannel')
 const sign = require('./routes/sign')
 const user = require('./routes/user')
 
@@ -55,6 +56,7 @@ app.use(user.routes(), user.allowedMethods())
 app.use(hok.routes(), hok.allowedMethods())
 app.use(draw.routes(), draw.allowedMethods())
 app.use(room.routes(), room.allowedMethods())
+app.use(channel.routes(), channel.allowedMethods())
 app.use(sign.routes(), sign.allowedMethods())
 
 app.listen(9999, () => {
