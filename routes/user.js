@@ -193,7 +193,7 @@ router.get('/userName',
         ctx.body = {
           status: -1,
           data: {},
-          msg: err
+          msg: `no wxUid`
         }
       }
       let query = new AV.Query('_User');
