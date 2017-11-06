@@ -185,8 +185,10 @@ router.get('/hokInfoByUserId',
   async(ctx, next) => {
     try {
       let data = [];
-      let userId = _.get(ctx, 'decode.userId', ctx.query.userId);      
-      console.log(`userId is ${userId}`)
+      let userId = _.get(ctx, 'decode.userId', ``)
+      if(ctx.query.userId){
+        userId = ctx.query.userId
+      }
       if (!userId) {
         return ctx.body = {
           status: -1,
