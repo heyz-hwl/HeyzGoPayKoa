@@ -14,7 +14,7 @@ const room = require('./routes/audioRoom')
 const channel = require('./routes/audioChannel')
 const sign = require('./routes/sign')
 const user = require('./routes/user')
-
+const token = require('./routes/token')
 const config = require('./lib/config')
 const AV = require('leancloud-storage')
 
@@ -58,6 +58,7 @@ app.use(draw.routes(), draw.allowedMethods())
 app.use(room.routes(), room.allowedMethods())
 app.use(channel.routes(), channel.allowedMethods())
 app.use(sign.routes(), sign.allowedMethods())
+app.use(token.routes(), token.allowedMethods())
 
 app.listen(9999, () => {
   console.log('[demo] request post is starting at port 3000')
