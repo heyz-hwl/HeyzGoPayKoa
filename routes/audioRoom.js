@@ -75,7 +75,7 @@ router.get('/audio/userInfo',
       let roomId = ctx.query.roomId;
       let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId);
-      let rooms = await query.first()
+      let room = await query.first()
       console.log(`room is ${JSON.stringify(room)}`)
       let data = await getRoomUserInfo(room)
       ctx.body = {
