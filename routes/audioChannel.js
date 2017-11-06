@@ -1,6 +1,5 @@
 const AV = require('leancloud-storage');
-const express = require('express');
-const router = express.Router();
+const router = require('koa-router')()
 const jwt = require('../lib/jwt');
 const db = require('../lib/db');
 const moment = require('moment');
