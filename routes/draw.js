@@ -15,7 +15,7 @@ router.prefix('/v1')
 
 //抽奖
 const draw = (userId, userGrade, user) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async(resolve, reject) => {
     let data = {};
     let prize;
     let drawRecord = AV.Object.new('DrawRecord');
@@ -28,75 +28,70 @@ const draw = (userId, userGrade, user) => {
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 34);
       data.positionId = 9;
-      getSkinURL(34).then((skin) => {
-        data.skinURL = skin;
-        resolve({
-          drawRecord,
-          data,
-          prize,
-          exp,
-          newUser
-        });
-      });
+      let skin = await getSkinURL(34)
+      data.skinURL = skin;
+      resolve({
+        drawRecord,
+        data,
+        prize,
+        exp,
+        newUser
+      })
     } else if (drawNumber < 15) {
       prize = `传说皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 33);
       data.positionId = 9;
-      getSkinURL(33).then((skin) => {
-        data.skinURL = skin;
-        resolve({
-          drawRecord,
-          data,
-          prize,
-          exp,
-          newUser
-        });
+      let skin = await getSkinURL(33)
+      data.skinURL = skin;
+      resolve({
+        drawRecord,
+        data,
+        prize,
+        exp,
+        newUser
       });
     } else if (drawNumber < 65) {
       prize = `史诗皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 32);
       data.positionId = 8;
-      getSkinURL(33).then((skin) => {
-        data.skinURL = skin;
-        resolve({
-          drawRecord,
-          data,
-          prize,
-          exp,
-          newUser
-        });
+      let skin = await getSkinURL(32)
+      data.skinURL = skin;
+      resolve({
+        drawRecord,
+        data,
+        prize,
+        exp,
+        newUser
       });
     } else if (drawNumber < 165) {
       prize = `稀有皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 31);
       data.positionId = 4;
-      getSkinURL(31).then((skin) => {
-        data.skinURL = skin;
-        resolve({
-          drawRecord,
-          data,
-          prize,
-          exp,
-          newUser
-        });
+      let skin = await getSkinURL(31)
+      data.skinURL = skin;
+      resolve({
+        drawRecord,
+        data,
+        prize,
+        exp,
+        newUser
       });
     } else if (drawNumber < 365) {
       prize = `普通皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 30);
       data.positionId = 2;
-      getSkinURL(30).then((skin) => {
-        data.skinURL = skin;
-        resolve({
-          drawRecord,
-          data,
-          prize,
-          exp,
-          newUser
-        });
+      let skin = await getSkinURL(30)
+      data.skinURL = skin;
+      resolve({
+        drawRecord,
+        data,
+        prize,
+        exp,
+        newUser
       });
     } else if (drawNumber < 565) {
       prize = `积分+288`;
@@ -305,7 +300,7 @@ router.get('/draw/skinURL',
 )
 
 //皮肤 URL 列表
-const getSkinURL = async (type) => {
+const getSkinURL = async(type) => {
   return new Promise(async(resolve, reject) => {
     let data = [];
     let query = new AV.Query(`_File`);
@@ -466,21 +461,20 @@ router.get('/draw/record',
       query.include('skin');
       query.descending('updatedAt');
       let records = await query.find()
-        if (_.isEmpty(records)) {
-          records = [];
-        }
-        records.forEach((item) => {
-          item.set('iconURL', prizeMap[item.get('type')].url);
-          item.set(`skinType`, prizeMap[item.get('type')].title);
-          item.set(`timeStamp`, util.date2TimeStamp(item.get('updatedAt')));
-        })
-        ctx.body = {
-          status: 200,
-          data: records,
-          msg: `success`
-        }
-    }
-    catch(err) {
+      if (_.isEmpty(records)) {
+        records = [];
+      }
+      records.forEach((item) => {
+        item.set('iconURL', prizeMap[item.get('type')].url);
+        item.set(`skinType`, prizeMap[item.get('type')].title);
+        item.set(`timeStamp`, util.date2TimeStamp(item.get('updatedAt')));
+      })
+      ctx.body = {
+        status: 200,
+        data: records,
+        msg: `success`
+      }
+    } catch (err) {
       ctx.body = {
         status: -1,
         data: {},
