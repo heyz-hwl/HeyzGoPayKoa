@@ -60,8 +60,8 @@ app.use(channel.routes(), channel.allowedMethods())
 app.use(sign.routes(), sign.allowedMethods())
 app.use(token.routes(), token.allowedMethods())
 
-app.listen(9999, () => {
+let server = app.listen(9999, () => {
   console.log('[demo] request post is starting at port 3000')
 })
 
-module.exports = app
+module.exports = server

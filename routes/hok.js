@@ -24,7 +24,7 @@ router.post('/hokInfo',
   jwt.verify,
   async(ctx, next) => {
     let data = ctx.request.body;
-    let userId = ctx.query.userId;
+    let userId = ctx.decode.userId;
     if (!data.type || !userId) {
       return ctx.body = {
         status: -1,
@@ -84,7 +84,7 @@ router.delete('/hokInfoDelete',
       ctx.body = {
         status: -1,
         data: {},
-        msg: err
+        msg: `hokInfoDelete err is ${err}`
       }
     }
   })
@@ -239,15 +239,15 @@ router.get('/hokInfoByHOKId',
     try {
       let HOKId = ctx.query.HOKId;
       if (!HOKId) {
-        return res.json({
+        return ctx.body = {
           status: -1,
           data: {},
           msg: `Params Missing`
-        })
+        }
       }
       let query = new AV.Query('HOK')
       query.equalTo('objectId', HOKId)
-      let result = query.first()
+      let result = await query.first()
       if (!result) {
         return ctx.body = {
           status: -1,
