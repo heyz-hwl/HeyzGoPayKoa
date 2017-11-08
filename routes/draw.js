@@ -8,8 +8,6 @@ const util = require('../lib/util');
 const {
   upgrade
 } = require('../lib/func');
-// const log4js = require('log4js');
-// const logger = log4js.getLogger();
 
 router.prefix('/v1')
 

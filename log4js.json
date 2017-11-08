@@ -34,25 +34,7 @@
                 "type": "file",  
                 "filename": "debug.log"
               }
-          },
-          {
-            "type": "logLevelFilter",  
-            "level": "FATAL",
-            "appender": {
-                 "type": "smtp",  
-                 "recipients": "weilong.huang@heyz.com",
-                 "sender": "610412956@qq.com",
-                 "sendInterval": 60,  
-                 "SMTP": {  
-                     "host": "smtp.qq.com", 
-                     "port": 465,
-                     "auth": {
-                         "user": "610412956@qq.com", 
-                         "pass": "rbnkfqmwndhkbdjd" 
-                     }
-                }
-             }
-         }
+          }
         ]
       }
     ]
