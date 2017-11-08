@@ -45,7 +45,7 @@ router.delete(`/user/blockList`,
   async(ctx, next) => {
     try {
       let userId = _.get(ctx, 'decode.userId', ctx.query.userId);
-      let BLUserId = ctx.body.userId;
+      let BLUserId = ctx.request.body.userId;
       let query = new AV.Query(`_User`);
       query.equalTo(`objectId`, userId);
       let User = await query.first()
@@ -227,9 +227,12 @@ router.get('/user',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let userId = ctx.query.userId || `59929e68a22b9d0057108c6f`; //获取用户ID
-      let query = new AV.Query(`_User`);
-      query.equalTo(`objectId`, userId);
+      let userId = ctx.decode.userId //获取用户ID
+      if(ctx.query.userId){
+        userId = ctx.query.userId
+      }
+      let query = new AV.Query(`_User`)
+      query.equalTo(`objectId`, userId)
       let user = await query.first()
       if (!user) {
         return ctx.body = {

@@ -143,7 +143,6 @@ router.get('/audio/changeSequence',
   async(ctx, next) => {
     try {
       let userId = ctx.decode.userId;
-      console.log(`userId is ${userId}`)
       let sql = `select order_nub from Sequence where userId = "${userId}"`;
       let order = await db.excute(sql)
       if (_.isEmpty(order)) {

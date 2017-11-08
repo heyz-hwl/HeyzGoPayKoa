@@ -76,7 +76,6 @@ router.get('/audio/userInfo',
       let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId);
       let room = await query.first()
-      console.log(`room is ${JSON.stringify(room)}`)
       let data = await getRoomUserInfo(room)
       ctx.body = {
         status: 200,
@@ -184,7 +183,7 @@ router.post('/audio/room',
     try {
       let url = `http://www.lzj.party/wz`;
       let audioRoom = AV.Object.new('AudioRoom');
-      let data = ctx.request.body;
+      let title = ctx.request.body.title;
       let owner = ctx.decode.userId;
       let result = await userRoom(owner)
       if (typeof (result) !== String && !_.isEmpty(result)) {
@@ -216,7 +215,7 @@ router.post('/audio/room',
       }
       let roomNub = await makeRoomNumber()
       audioRoom.set('owner', owner);
-      audioRoom.set('title', data.title);
+      audioRoom.set('title', title);
       audioRoom.set('roomNub', String(roomNub));
       audioRoom.set('member', []);
       audioRoom.set('lastMember', []);
@@ -229,7 +228,7 @@ router.post('/audio/room',
       ctx.body = {
         status: 200,
         data: room,
-        msg: `create room ${room.id} success`
+        msg: `create room ${room.get('objectId')} success`
       }
     } catch (err) {
       ctx.body = {
@@ -327,7 +326,6 @@ router.get('/audio/rooms',
         }))
       })
       let ret = await Promise.all(promise)
-      console.log(`ret is ${JSON.stringify(ret)}`)
       ctx.body = {
         status: 200,
         data: ret,
@@ -351,13 +349,6 @@ router.post('/audio/user',
       let roomId = ctx.request.body.roomId;
       let numberLimit = 9;
       let data = await userRoom(userId)
-      if (_.get(data, 'roomId', roomId) !== roomId) {
-        return ctx.body = {
-          status: -1,
-          data: {},
-          msg: `您已加入${data.roomNub}房间`
-        }
-      }
       let query = new AV.Query('AudioRoom');
       query.equalTo('objectId', roomId);
       let result = await query.first()
