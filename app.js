@@ -4,7 +4,9 @@ const views = require('koa-views')
 const json = require('koa-json')
 const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
-const logger = require('koa-logger')
+// const logger = require('koa-logger')
+const log4js = require('koa-log4')
+const logger = log4js.getLogger('app')
 
 const index = require('./routes/index')
 const users = require('./routes/users')
@@ -34,7 +36,9 @@ app.use(bodyparser({
 }))
 
 app.use(json())
-app.use(logger())
+// app.use(logger())
+require('./log')
+app.use(log4js.koaLogger(log4js.getLogger('http'), { level: 'auto' }))
 app.use(require('koa-static')(__dirname + '/public'))
 
 app.use(views(__dirname + '/views', {
@@ -46,7 +50,7 @@ app.use(async (ctx, next) => {
   const start = new Date()
   await next()
   const ms = new Date() - start
-  console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
+  logger.info(`${ctx.method} ${ctx.url} - ${ms}ms`)
 })
 
 // routes
@@ -60,8 +64,13 @@ app.use(channel.routes(), channel.allowedMethods())
 app.use(sign.routes(), sign.allowedMethods())
 app.use(token.routes(), token.allowedMethods())
 
+app.on('error', function (err, ctx) {
+  console.log(err)
+  logger.error('server error', err, ctx)
+})
+
 let server = app.listen(9999, () => {
-  console.log('[demo] request post is starting at port 3000')
+  console.log('[demo] request post is starting at port 9999')
 })
 
 module.exports = server

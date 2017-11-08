@@ -6,6 +6,8 @@ const _ = require('lodash');
 const socket = require('../lib/socket');
 const util = require('../lib/util');
 const heroMsg = require('./hok').heroMap;
+const log4js = require('koa-log4')
+const logger = log4js.getLogger('debug')
 
 router.prefix('/v1')
 
@@ -315,6 +317,7 @@ router.get('/audio/rooms',
       roomList.forEach((room, index) => {
         promise.push(new Promise(async(resolve, reject) => {
           let userInfo = await getRoomUserInfo(room)
+          logger.debug(`userInfo`, userInfo)
           resolve({
             roomId: room.get('objectId'),
             title: room.get('title'),
@@ -401,7 +404,7 @@ router.post('/audio/userLeave',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let userId = _.get(ctx, 'decode.userId', ctx.query.userId);
+      let userId = ctx.request.body.deleteUserId || ctx.decode.userId
       userId = _.isUndefined(ctx.request.body.deleteUserId) ? userId : ctx.request.body.deleteUserId;
       let roomId = ctx.request.body.roomId;
       let query = new AV.Query('AudioRoom');
