@@ -11,6 +11,31 @@ const logger = log4js.getLogger('router')
 
 router.prefix('/v1')
 
+//get bg pic url
+router.get('/audio/bgPic',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let query = new AV.Query('_File')
+      query.equalTo('mime_type', 'cover')
+      query.select('url')
+      let ret = await query.find()
+      ctx.body = {
+        status: 200,
+        data: ret,
+        msg: `success`
+      }
+    } catch (err) {
+      logger.error(`get bgPic err is ${err}`)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: (`get bgPic err is ${err}`)
+      }
+    }
+  }
+)
+
 //房主把某用户加入到黑名单
 router.post('/audio/blockList',
   jwt.verify,
