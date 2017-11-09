@@ -680,7 +680,7 @@ router.put('/audio/roomTitle',
       ctx.body = {
         status: 200,
         data: ret,
-        msg: 'succuss'
+        msg: 'success'
       }
     } catch (err) {
       console.log(`update roomtitle err is ${err}`)
@@ -709,7 +709,7 @@ router.get('/audio/rooms',
         query.equalTo('objectId', ctx.query.roomId)
       }
       query.include('background')
-      query.include('icon')      
+      query.include('icon')
       query.addDescending('grade');
       query.limit(limit);
       query.skip(skip);
