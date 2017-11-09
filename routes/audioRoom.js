@@ -617,7 +617,7 @@ router.post('/audio/room',
       if (user.get('level') < 6) {
         return ctx.body = {
           status: 403,
-          data: room,
+          data: {},
           msg: `需要6级才能创建房间`
         }
       }
