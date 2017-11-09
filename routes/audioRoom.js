@@ -29,8 +29,8 @@ router.get('/audio/bgPic',
       ctx.body = {
         status: 200,
         data: {
-          cover: cover.get('url'),
-          icon: icon.get('url')
+          cover: cover,
+          icon: icon
         },
         msg: `success`
       }
