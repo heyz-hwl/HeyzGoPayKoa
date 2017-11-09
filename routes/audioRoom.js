@@ -450,12 +450,14 @@ const userRoom = (userId) => {
     let query2 = new AV.Query('AudioRoom');
     query2.equalTo('owner', userId);
     let query = AV.Query.or(query1, query2);
+    query.include('icon')
     let room = await query.first()
     if (!room) {
       resolve({})
     }
     let isHost = room.get('owner') == userId ? true : false;
     let icon = room.get('icon').get('url');
+    logger.debug(`icon`, icon)
     let data = {
       roomId: room.get('objectId'),
       title: room.get('title'),
@@ -625,7 +627,7 @@ router.post('/audio/room',
         msg: `create room ${room.get('objectId')} success`
       }
     } catch (err) {
-      logger.err(`create room err is`, err)
+      logger.error(`create room err is`, err)
       ctx.body = {
         status: 500,
         data: {},
@@ -792,7 +794,7 @@ router.post('/audio/user',
         msg: 'success'
       }
     } catch (err) {
-      logger.err(`post user err is`, err)
+      logger.error(`post user err is`, err)
       ctx.body = {
         status: 500,
         data: {},
@@ -873,7 +875,7 @@ router.post('/audio/userLeave',
         msg: 'user leave success'
       }
     } catch (err) {
-      logger.err(`delete user from room err is`, err)
+      logger.error(`delete user from room err is`, err)
       ctx.body = {
         status: -1,
         data: {},
