@@ -7,9 +7,139 @@ const socket = require('../lib/socket');
 const util = require('../lib/util');
 const heroMsg = require('./hok').heroMap;
 const log4js = require('koa-log4')
-const logger = log4js.getLogger('debug')
+const logger = log4js.getLogger('router')
 
 router.prefix('/v1')
+
+//房主把某用户加入到黑名单
+router.post('/audio/blockList',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let {
+        userId,
+        roomId
+      } = ctx.request.body
+      let ownerId = ctx.decode.userId
+      logger.debug(`userId, roomId, ownerId`, userId, roomId, ownerId)
+      let query = new AV.Query('AudioRoom')
+      query.equalTo('objectId', roomId)
+      let room = await query.first()
+      if (room.get('owner') !== ownerId) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `只有房主才能禁言`
+        }
+      }
+      let blockList = room.get('blockList')
+      if (blockList.includes(userId)) {
+        return ctx.body = {
+          status: 202,
+          data: {},
+          msg: `该用户已经在黑名单中`
+        }
+      }
+      let theRoom = AV.Object.createWithoutData('AudioRoom', roomId)
+      blockList.push(userId)
+      theRoom.set('blockList', blockList)
+      let ret = await theRoom.save()
+      ctx.body = {
+        status: 200,
+        data: ret,
+        msg: `success`
+      }
+    } catch (err) {
+      logger.error(`add user to blockList err is `, err)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `add user to blocklist err is ${err}`
+      }
+    }
+  }
+)
+
+router.delete('/audio/blockList',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let {
+        userId,
+        roomId
+      } = ctx.request.body
+      let ownerId = ctx.decode.userId
+      let query = new AV.Query('AudioRoom')
+      query.equalTo('objectId', roomId)
+      let room = await query.first()
+      if (room.get('owner') !== ownerId) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `只有房主才有这个权力`
+        }
+      }
+      let blockList = room.get('blockList')
+      if (!blockList.includes(userId)) {
+        return ctx.body = {
+          status: 202,
+          data: {},
+          msg: `该用户不在黑名单中`
+        }
+      }
+      let theRoom = AV.Object.createWithoutData('AudioRoom', roomId)
+      blockList.splice(blockList.indexOf(userId), 1)
+      theRoom.set('blockList', blockList)
+      let ret = await theRoom.save()
+      ctx.body = {
+        status: 200,
+        data: ret,
+        msg: `success`
+      }
+    } catch (error) {
+      logger.error(`delete blockList err is `, err)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `delete blocklist err is ${err}`
+      }
+    }
+  }
+)
+
+router.get('/audio/blockList',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let {
+        roomId
+      } = ctx.query
+      let query = new AV.Query('AudioRoom')
+      query.equalTo('objectId', roomId)
+      let room = await query.first()
+      if (!room) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `no room`
+        }
+      }
+      let blocklist = room.get('blockList')
+      ctx.body = {
+        status: 200,
+        data: blocklist,
+        msg: `success`
+      }
+    } catch (err) {
+      logger.error(`get blocklist err is `, err)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `get blocklist err is ${err}`
+      }
+    }
+  }
+)
 
 //查询用户在哪个房间
 router.get('/audio/userRoom',
@@ -224,7 +354,7 @@ router.post('/audio/room',
       let query1 = new AV.Query('_User');
       query1.equalTo('objectId', owner);
       let user = await query1.first()
-      if(usr.get('level') <6){
+      if (user.get('level') < 6) {
         return ctx.body = {
           status: 403,
           data: room,
