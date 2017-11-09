@@ -44,6 +44,9 @@ router.post('/audio/blockList',
       blockList.push(userId)
       theRoom.set('blockList', blockList)
       let ret = await theRoom.save()
+      socket.sockets.to(`room${roomId}`).emit('blockList', {
+        userList: ret.get('blocklist')
+      });
       ctx.body = {
         status: 200,
         data: ret,
@@ -91,6 +94,9 @@ router.delete('/audio/blockList',
       blockList.splice(blockList.indexOf(userId), 1)
       theRoom.set('blockList', blockList)
       let ret = await theRoom.save()
+      socket.sockets.to(`room${roomId}`).emit('blockList', {
+        userList: ret.get('blockList')
+      });
       ctx.body = {
         status: 200,
         data: ret,
