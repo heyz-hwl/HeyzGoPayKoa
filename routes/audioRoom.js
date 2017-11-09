@@ -13,36 +13,36 @@ router.prefix('/v1')
 
 //get default bg pic url
 router.get('/audio/bgPic',
-jwt.verify,
-async(ctx, next) => {
-  try {
-    let query = new AV.Query('_File')
-    query.equalTo('mime_type', 'default_cover')
-    query.select('url')
-    let cover = await query.find()
-    logger.debug(`cover`, JSON.stringify(cover))
-    let query2 = new AV.Query('_File')
-    query2.equalTo('mime_type', 'default_icon')
-    query.select('url')
-    let icon = await query.find()
-    logger.debug(`icon`, JSON.stringify(icon))    
-    ctx.body = {
-      status: 200,
-      data: {
-        cover: cover,
-        icon: icon
-      },
-      msg: `success`
-    }
-  } catch (err) {
-    logger.error(`get bgPic err is ${err}`)
-    ctx.body = {
-      status: -1,
-      data: {},
-      msg: (`get bgPic err is ${err}`)
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let query = new AV.Query('_File')
+      query.equalTo('mime_type', 'default_cover')
+      query.select('url')
+      let cover = await query.find()
+      logger.debug(`cover`, JSON.stringify(cover))
+      let query2 = new AV.Query('_File')
+      query2.equalTo('mime_type', 'default_icon')
+      query.select('url')
+      let icon = await query.find()
+      logger.debug(`icon`, JSON.stringify(icon))
+      ctx.body = {
+        status: 200,
+        data: {
+          cover: cover,
+          icon: icon
+        },
+        msg: `success`
+      }
+    } catch (err) {
+      logger.error(`get bgPic err is ${err}`)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: (`get bgPic err is ${err}`)
+      }
     }
   }
-}
 )
 
 //选择封面和 icon
@@ -50,19 +50,23 @@ router.put('/audio/selectPic',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let { coverId, iconId, roomId } = ctx.request.body
+      let {
+        coverId,
+        iconId,
+        roomId
+      } = ctx.request.body
       let room = AV.Object.createWithoutData('AudioRoom', roomId)
       room.set('background', coverId)
       room.set('icon', iconId)
       let ret = await room.save()
-      if(ret) {
+      if (ret) {
         ctx.body = {
           status: 200,
           data: {},
           msg: `success`
         }
       }
-    }catch (err) {
+    } catch (err) {
       ctx.body = {
         status: -1,
         data: {},
@@ -77,7 +81,10 @@ router.post('/audio/uploadPic',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let { coverDate, iconData } = ctx.request.body
+      let {
+        coverDate,
+        iconData
+      } = ctx.request.body
       let userId = ctx.decode.userId
       let file = new AV.File(userId, coverDate)
       file.set('mime_type', 'custom_cover')
@@ -575,7 +582,11 @@ router.post('/audio/room',
   async(ctx, next) => {
     try {
       let audioRoom = AV.Object.new('AudioRoom');
-      let { title, cover, icon } = ctx.request.body
+      let {
+        title,
+        cover,
+        icon
+      } = ctx.request.body
       let owner = ctx.decode.userId;
       let result = await userRoom(owner)
       if (typeof (result) !== String && !_.isEmpty(result)) {
@@ -614,7 +625,7 @@ router.post('/audio/room',
         msg: `create room ${room.get('objectId')} success`
       }
     } catch (err) {
-      logger.err(`create room err is`, err)            
+      logger.err(`create room err is`, err)
       ctx.body = {
         status: 500,
         data: {},
@@ -755,7 +766,7 @@ router.post('/audio/user',
           msg: '你已在房间内'
         }
       }
-      if(result.get('blockList').includes(userId)){
+      if (result.get('blockList').includes(userId)) {
         return ctx.body = {
           status: 403,
           data: {},
@@ -864,7 +875,7 @@ router.post('/audio/userLeave',
         msg: 'user leave success'
       }
     } catch (err) {
-      logger.err(`delete user from room err is`, err)      
+      logger.err(`delete user from room err is`, err)
       ctx.body = {
         status: -1,
         data: {},
