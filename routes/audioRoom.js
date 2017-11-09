@@ -29,8 +29,8 @@ router.get('/audio/bgPic',
       ctx.body = {
         status: 200,
         data: {
-          cover: cover,
-          icon: icon
+          cover: cover.get('url'),
+          icon: icon.get('url')
         },
         msg: `success`
       }
@@ -76,40 +76,40 @@ router.put('/audio/selectPic',
   }
 )
 
-//上传图片
-router.post('/audio/uploadPic',
-  jwt.verify,
-  async(ctx, next) => {
-    try {
-      let {
-        coverDate,
-        iconData
-      } = ctx.request.body
-      let userId = ctx.decode.userId
-      let file = new AV.File(userId, coverDate)
-      file.set('mime_type', 'custom_cover')
-      let cover = await file.save()
-      let file2 = new AV.File(userId, iconData)
-      file2.set('mime_type', 'custom_icon')
-      let icon = await file2.save()
-      ctx.body = {
-        status: 200,
-        data: {
-          cover: cover,
-          icon: icon
-        },
-        msg: `success`
-      }
-    } catch (err) {
-      logger.error(`uploadPic err is `, err)
-      ctx.body = {
-        status: -1,
-        data: {},
-        msg: `uploadPic err is ${err}`
-      }
-    }
-  }
-)
+// //上传图片
+// router.post('/audio/uploadPic',
+//   jwt.verify,
+//   async(ctx, next) => {
+//     try {
+//       let {
+//         coverDate,
+//         iconData
+//       } = ctx.request.body
+//       let userId = ctx.decode.userId
+//       let file = new AV.File(userId, coverDate)
+//       file.set('mime_type', 'custom_cover')
+//       let cover = await file.save()
+//       let file2 = new AV.File(userId, iconData)
+//       file2.set('mime_type', 'custom_icon')
+//       let icon = await file2.save()
+//       ctx.body = {
+//         status: 200,
+//         data: {
+//           cover: cover,
+//           icon: icon
+//         },
+//         msg: `success`
+//       }
+//     } catch (err) {
+//       logger.error(`uploadPic err is `, err)
+//       ctx.body = {
+//         status: -1,
+//         data: {},
+//         msg: `uploadPic err is ${err}`
+//       }
+//     }
+//   }
+// )
 
 //房主把某用户加入到禁言列表中
 router.post('/audio/ban',
@@ -455,7 +455,7 @@ const userRoom = (userId) => {
       resolve({})
     }
     let isHost = room.get('owner') == userId ? true : false;
-    let icon = room.get('icon');
+    let icon = room.get('icon').get('url');
     let data = {
       roomId: room.get('objectId'),
       title: room.get('title'),
@@ -704,7 +704,6 @@ router.get('/audio/rooms',
         query.equalTo('objectId', ctx.query.roomId)
       }
       query.include('background')
-      query.include('icon')
       query.addDescending('grade');
       query.limit(limit);
       query.skip(skip);
@@ -718,8 +717,7 @@ router.get('/audio/rooms',
             title: room.get('title'),
             roomNub: room.get('roomNub'),
             number: room.get('member').length + 1,
-            imageUrl: room.get('background'),
-            iconURL: room.get('icon'),
+            imageUrl: room.get('background').get('url'),
             user: userInfo
           })
         }))
