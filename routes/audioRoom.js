@@ -50,6 +50,13 @@ router.post('/audio/blockList',
       let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId)
       let room = await query.first()
+      if(!room){
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `no room`
+        }
+      }
       if (room.get('owner') !== ownerId) {
         return ctx.body = {
           status: 403,
@@ -100,6 +107,13 @@ router.delete('/audio/blockList',
       let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId)
       let room = await query.first()
+      if(!room){
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `no room`
+        }
+      }
       if (room.get('owner') !== ownerId) {
         return ctx.body = {
           status: 403,
