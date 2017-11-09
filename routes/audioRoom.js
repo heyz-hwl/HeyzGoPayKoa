@@ -598,8 +598,8 @@ router.post('/audio/room',
           msg: `该用户已在${result.roomNub}聊天室内`
         }
       }
-      let file = AV.Object.createWithoutData('_File', '5a041467a22b9d00629c8549')
-      let file2 = AV.Object.createWithoutData('_File', '5a041363a22b9d00629c7250')
+      let file = AV.Object.createWithoutData('_File', '5a041363a22b9d00629c7250')
+      let file2 = AV.Object.createWithoutData('_File', '5a041467a22b9d00629c8549')
       audioRoom.set('background', file)
       audioRoom.set('icon', file2)
       let roomNub = await makeRoomNumber()
