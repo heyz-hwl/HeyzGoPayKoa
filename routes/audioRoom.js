@@ -706,6 +706,7 @@ router.get('/audio/rooms',
         query.equalTo('objectId', ctx.query.roomId)
       }
       query.include('background')
+      query.include('icon')      
       query.addDescending('grade');
       query.limit(limit);
       query.skip(skip);
@@ -720,6 +721,7 @@ router.get('/audio/rooms',
             roomNub: room.get('roomNub'),
             number: room.get('member').length + 1,
             imageUrl: room.get('background').get('url'),
+            icon: room.get('icon').get('url'),
             user: userInfo
           })
         }))
