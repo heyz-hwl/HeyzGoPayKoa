@@ -55,14 +55,17 @@ router.put('/audio/selectPic',
         iconId,
         roomId
       } = ctx.request.body
+      console.log(`coverId is ${coverId} iconId is ${iconId} roomId is ${roomId}`)
       let room = AV.Object.createWithoutData('AudioRoom', roomId)
-      room.set('background', coverId)
-      room.set('icon', iconId)
+      let cover = AV.Object.createWithoutData('_File', coverId)
+      let icon = AV.Object.createWithoutData('_File', iconId)
+      room.set('background', cover)
+      room.set('icon', icon)
       let ret = await room.save()
       if (ret) {
         ctx.body = {
           status: 200,
-          data: {},
+          data: ret,
           msg: `success`
         }
       }
