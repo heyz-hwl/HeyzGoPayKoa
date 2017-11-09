@@ -224,6 +224,13 @@ router.post('/audio/room',
       let query1 = new AV.Query('_User');
       query1.equalTo('objectId', owner);
       let user = await query1.first()
+      if(usr.get('level') <6){
+        return ctx.body = {
+          status: 403,
+          data: room,
+          msg: `需要6级才能创建房间`
+        }
+      }
       let levelGrade = user.get('level') * 1;
       audioRoom.set('grade', levelGrade);
       let room = await audioRoom.save()
