@@ -11,26 +11,244 @@ const logger = log4js.getLogger('router')
 
 router.prefix('/v1')
 
-//get bg pic url
+//get default bg pic url
 router.get('/audio/bgPic',
+jwt.verify,
+async(ctx, next) => {
+  try {
+    let query = new AV.Query('_File')
+    query.equalTo('mime_type', 'default_cover')
+    query.select('url')
+    let cover = await query.find()
+    logger.debug(`cover`, JSON.stringify(cover))
+    let query2 = new AV.Query('_File')
+    query2.equalTo('mime_type', 'default_icon')
+    query.select('url')
+    let icon = await query.find()
+    logger.debug(`icon`, JSON.stringify(icon))    
+    ctx.body = {
+      status: 200,
+      data: {
+        cover: cover,
+        icon: icon
+      },
+      msg: `success`
+    }
+  } catch (err) {
+    logger.error(`get bgPic err is ${err}`)
+    ctx.body = {
+      status: -1,
+      data: {},
+      msg: (`get bgPic err is ${err}`)
+    }
+  }
+}
+)
+
+//选择封面和 icon
+router.put('/audio/selectPic',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let query = new AV.Query('_File')
-      query.equalTo('mime_type', 'cover')
-      query.select('url')
-      let ret = await query.find()
+      let { coverId, iconId, roomId } = ctx.request.body
+      let room = AV.Object.createWithoutData('AudioRoom', roomId)
+      room.set('background', coverId)
+      room.set('icon', iconId)
+      let ret = await room.save()
+      if(ret) {
+        ctx.body = {
+          status: 200,
+          data: {},
+          msg: `success`
+        }
+      }
+    }catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `selectPic err is ${err}`
+      }
+    }
+  }
+)
+
+//上传图片
+router.post('/audio/uploadPic',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let { coverDate, iconData } = ctx.request.body
+      let userId = ctx.decode.userId
+      let file = new AV.File(userId, coverDate)
+      file.set('mime_type', 'custom_cover')
+      let cover = await file.save()
+      let file2 = new AV.File(userId, iconData)
+      file2.set('mime_type', 'custom_icon')
+      let icon = await file2.save()
+      ctx.body = {
+        status: 200,
+        data: {
+          cover: cover,
+          icon: icon
+        },
+        msg: `success`
+      }
+    } catch (err) {
+      logger.error(`uploadPic err is `, err)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `uploadPic err is ${err}`
+      }
+    }
+  }
+)
+
+//房主把某用户加入到禁言列表中
+router.post('/audio/ban',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let {
+        userId,
+        roomId
+      } = ctx.request.body
+      let ownerId = ctx.decode.userId
+      logger.debug(`userId, roomId, ownerId`, userId, roomId, ownerId)
+      let query = new AV.Query('AudioRoom')
+      query.equalTo('objectId', roomId)
+      let room = await query.first()
+      if (!room) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `no room`
+        }
+      }
+      if (room.get('owner') !== ownerId) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `只有房主才能禁言`
+        }
+      }
+      let ban = room.get('ban')
+      if (ban.includes(userId)) {
+        return ctx.body = {
+          status: 202,
+          data: {},
+          msg: `该用户已经在禁言名单中`
+        }
+      }
+      let theRoom = AV.Object.createWithoutData('AudioRoom', roomId)
+      ban.push(userId)
+      theRoom.set('ban', ban)
+      let ret = await theRoom.save()
+      socket.sockets.to(`room${roomId}`).emit('ban', {
+        userList: ret.get('ban')
+      });
       ctx.body = {
         status: 200,
         data: ret,
         msg: `success`
       }
     } catch (err) {
-      logger.error(`get bgPic err is ${err}`)
+      logger.error(`add user to ban err is `, err)
       ctx.body = {
         status: -1,
         data: {},
-        msg: (`get bgPic err is ${err}`)
+        msg: `add user to ban err is ${err}`
+      }
+    }
+  }
+)
+
+router.delete('/audio/ban',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let {
+        userId,
+        roomId
+      } = ctx.request.body
+      let ownerId = ctx.decode.userId
+      let query = new AV.Query('AudioRoom')
+      query.equalTo('objectId', roomId)
+      let room = await query.first()
+      if (!room) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `no room`
+        }
+      }
+      if (room.get('owner') !== ownerId) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `只有房主才有这个权力`
+        }
+      }
+      let ban = room.get('ban')
+      if (!ban.includes(userId)) {
+        return ctx.body = {
+          status: 202,
+          data: {},
+          msg: `该用户不在禁言名单中`
+        }
+      }
+      let theRoom = AV.Object.createWithoutData('AudioRoom', roomId)
+      ban.splice(ban.indexOf(userId), 1)
+      theRoom.set('ban', ban)
+      let ret = await theRoom.save()
+      socket.sockets.to(`room${roomId}`).emit('ban', {
+        userList: ret.get('ban')
+      });
+      ctx.body = {
+        status: 200,
+        data: ret,
+        msg: `success`
+      }
+    } catch (error) {
+      logger.error(`delete ban err is `, err)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `delete ban err is ${err}`
+      }
+    }
+  }
+)
+
+router.get('/audio/ban',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let {
+        roomId
+      } = ctx.query
+      let query = new AV.Query('AudioRoom')
+      query.equalTo('objectId', roomId)
+      let room = await query.first()
+      if (!room) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `no room`
+        }
+      }
+      let ban = room.get('ban')
+      ctx.body = {
+        status: 200,
+        data: ban,
+        msg: `success`
+      }
+    } catch (err) {
+      logger.error(`get ban err is `, err)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `get ban err is ${err}`
       }
     }
   }
@@ -50,7 +268,7 @@ router.post('/audio/blockList',
       let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId)
       let room = await query.first()
-      if(!room){
+      if (!room) {
         return ctx.body = {
           status: 403,
           data: {},
@@ -61,7 +279,7 @@ router.post('/audio/blockList',
         return ctx.body = {
           status: 403,
           data: {},
-          msg: `只有房主才能禁言`
+          msg: `只有房主才能封 ID`
         }
       }
       let blockList = room.get('blockList')
@@ -107,7 +325,7 @@ router.delete('/audio/blockList',
       let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId)
       let room = await query.first()
-      if(!room){
+      if (!room) {
         return ctx.body = {
           status: 403,
           data: {},
@@ -230,8 +448,6 @@ const userRoom = (userId) => {
       resolve({})
     }
     let isHost = room.get('owner') == userId ? true : false;
-    let background = room.get('background');
-    let nub = String(background).slice(24);
     let icon = room.get('icon');
     let data = {
       roomId: room.get('objectId'),
@@ -358,9 +574,8 @@ router.post('/audio/room',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let url = `http://www.lzj.party/wz`;
       let audioRoom = AV.Object.new('AudioRoom');
-      let title = ctx.request.body.title;
+      let { title, cover, icon } = ctx.request.body
       let owner = ctx.decode.userId;
       let result = await userRoom(owner)
       if (typeof (result) !== String && !_.isEmpty(result)) {
@@ -370,26 +585,10 @@ router.post('/audio/room',
           msg: `该用户已在${result.roomNub}聊天室内`
         }
       }
-      let query = new AV.Query('HOK');
-      query.equalTo('userId', owner);
-      query.equalTo('default', true);
-      let hok = await query.first()
-      if (!hok) { //没有默认 HOK
-        let query = new AV.Query('HOK');
-        query.equalTo('userId', owner);
-        let hokResult = await query.first()
-        if (!hohokResultk) { //连 HOK 都没有
-          let number = util.randomNumber(105, 121);
-          audioRoom.set('background', `${url}/${number}.jpg`);
-          audioRoom.set('icon', `${url}s/${number}.jpg`)
-        } else {
-          audioRoom.set('background', `${url}/${heroMsg[hok.get('hero')[0]]}`);
-          audioRoom.set('icon', `${url}s/${heroMsg[hok.get('hero')[0]]}`)
-        }
-      } else {
-        audioRoom.set('background', `${url}/${heroMsg[hok.get('hero')[0]]}`);
-        audioRoom.set('icon', `${url}s/${heroMsg[hok.get('hero')[0]]}`);
-      }
+      let file = AV.Object.createWithoutData('_File', '5a041467a22b9d00629c8549')
+      let file2 = AV.Object.createWithoutData('_File', '5a041363a22b9d00629c7250')
+      audioRoom.set('background', file)
+      audioRoom.set('icon', file2)
       let roomNub = await makeRoomNumber()
       audioRoom.set('owner', owner);
       audioRoom.set('title', title);
@@ -415,6 +614,7 @@ router.post('/audio/room',
         msg: `create room ${room.get('objectId')} success`
       }
     } catch (err) {
+      logger.err(`create room err is`, err)            
       ctx.body = {
         status: 500,
         data: {},
@@ -471,7 +671,7 @@ router.put('/audio/roomTitle',
       ctx.body = {
         status: -1,
         data: {},
-        msg: err
+        msg: `update roomtitle err is ${err}`
       }
     }
   })
@@ -492,6 +692,8 @@ router.get('/audio/rooms',
       if (!_.isUndefined(ctx.query.roomId)) {
         query.equalTo('objectId', ctx.query.roomId)
       }
+      query.include('background')
+      query.include('icon')
       query.addDescending('grade');
       query.limit(limit);
       query.skip(skip);
@@ -506,6 +708,7 @@ router.get('/audio/rooms',
             roomNub: room.get('roomNub'),
             number: room.get('member').length + 1,
             imageUrl: room.get('background'),
+            iconURL: room.get('icon'),
             user: userInfo
           })
         }))
@@ -539,7 +742,7 @@ router.post('/audio/user',
       let result = await query.first()
       if (!result) {
         return ctx.body = {
-          status: -1,
+          status: 403,
           data: {},
           msg: 'no room'
         }
@@ -547,14 +750,21 @@ router.post('/audio/user',
       let member = result.get('member');
       if (member.indexOf(userId) > -1 || userId == result.get('owner')) {
         return ctx.body = {
-          status: -1,
+          status: 403,
           data: {},
           msg: '你已在房间内'
         }
       }
+      if(result.get('blockList').includes(userId)){
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `你被房主禁止进入房间`
+        }
+      }
       if (member.length == numberLimit) {
         return ctx.body = {
-          status: -1,
+          status: 403,
           data: {},
           msg: '人数已满'
         }
@@ -573,6 +783,7 @@ router.post('/audio/user',
         msg: 'success'
       }
     } catch (err) {
+      logger.err(`post user err is`, err)
       ctx.body = {
         status: 500,
         data: {},
@@ -653,10 +864,11 @@ router.post('/audio/userLeave',
         msg: 'user leave success'
       }
     } catch (err) {
+      logger.err(`delete user from room err is`, err)      
       ctx.body = {
         status: -1,
         data: {},
-        mag: `delete user err ia ${err}`
+        mag: `delete user from room err is ${err}`
       }
     }
   })

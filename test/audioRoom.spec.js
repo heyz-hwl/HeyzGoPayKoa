@@ -26,7 +26,36 @@ describe('test audioRoom', async() => {
       .expect('Content-Type', /json/)
       .expect(200)
       .end((err, ctx) => {
-        // expect(ctx.body.status).to.equal(200)
+        expect(ctx.body.status).to.equal(200)
+        expect(ctx.body.msg).to.equal('success')
+        done()
+      })
+  })
+
+  it('responds to get background pic url', (done) => {
+    api.get('/v1/audio/bgPic')
+      .query({
+        access_token: token
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, ctx) => {
+        expect(ctx.body.status).to.equal(200)
+        expect(ctx.body.msg).to.equal('success')
+        done()
+      })
+  })
+
+  it('responds to get blockList', (done) => {
+    api.get('/v1/audio/blockList')
+      .query({
+        access_token: token,
+        roomId: '59f8435dee920a00457e4fb0'
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, ctx) => {
+        expect(ctx.body.status).to.equal(200)
         expect(ctx.body.msg).to.equal('success')
         done()
       })
