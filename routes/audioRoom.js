@@ -155,7 +155,7 @@ router.post('/audio/ban',
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('ban', {
-        userList: ret.get('ban')
+        userList: ret
       });
       ctx.body = {
         status: 200,
@@ -212,7 +212,7 @@ router.delete('/audio/ban',
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('ban', {
-        userList: ret.get('ban')
+        userList: ret
       });
       ctx.body = {
         status: 200,
@@ -305,7 +305,7 @@ router.post('/audio/blockList',
       theRoom.set('blockList', blockList)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('blockList', {
-        userList: ret.get('blocklist')
+        userList: ret
       });
       ctx.body = {
         status: 200,
@@ -362,7 +362,7 @@ router.delete('/audio/blockList',
       theRoom.set('blockList', blockList)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('blockList', {
-        userList: ret.get('blockList')
+        userList: ret
       });
       ctx.body = {
         status: 200,
