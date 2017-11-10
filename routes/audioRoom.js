@@ -248,9 +248,16 @@ router.get('/audio/ban',
         }
       }
       let ban = room.get('ban')
+      socket.sockets.to(`room${roomId}`).emit('ban', {
+        userList: {
+          ban: ban
+        }
+      });
       ctx.body = {
         status: 200,
-        data: ban,
+        data: {
+          ban: ban
+        },
         msg: `success`
       }
     } catch (err) {
@@ -398,9 +405,16 @@ router.get('/audio/blockList',
         }
       }
       let blocklist = room.get('blockList')
+      socket.sockets.to(`room${roomId}`).emit('ban', {
+        userList: {
+          blocklist: blocklist
+        }
+      });
       ctx.body = {
         status: 200,
-        data: blocklist,
+        data: {
+          blocklist: blocklist
+        },
         msg: `success`
       }
     } catch (err) {
