@@ -516,7 +516,7 @@ const prize3 = {
 const prize4 = {
   position: 4,
   title: `稀有皮肤`,
-  url: `https://dn-msjbwutc.qbox.me/88ffc2efe8e5a82ec4d6.png`
+  url: `https://dn-msjbwutc.qbox.me/5a895a02779a2274e4a7.png`
 }
 const prize6 = {
   position: 6,
@@ -531,7 +531,7 @@ const prize7 = {
 const prize8 = {
   position: 8,
   title: `史诗皮肤`,
-  url: `https://dn-msjbwutc.qbox.me/5a895a02779a2274e4a7.png`
+  url: `https://dn-msjbwutc.qbox.me/88ffc2efe8e5a82ec4d6.png`
 }
 const prize9 = {
   position: 9,
