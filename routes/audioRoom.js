@@ -157,7 +157,7 @@ router.post('/audio/ban',
       socket.sockets.to(`room${roomId}`).emit('ban', {
         userList: {
           status: 200,
-          data: ret.get('blocklist'),
+          data: ret.get('blockList'),
           msg: `success`
         }
       });
@@ -218,7 +218,7 @@ router.delete('/audio/ban',
       socket.sockets.to(`room${roomId}`).emit('ban', {
         userList: {
           status: 200,
-          data: ret.get('blocklist'),
+          data: ret.get('blockList'),
           msg: `success`
         }
       });
@@ -315,7 +315,7 @@ router.post('/audio/blockList',
       socket.sockets.to(`room${roomId}`).emit('blockList', {
         userList: {
           status: 200,
-          data: ret.get('blocklist'),
+          data: ret.get('blockList'),
           msg: `success`
         }
       });
@@ -329,7 +329,7 @@ router.post('/audio/blockList',
       ctx.body = {
         status: -1,
         data: {},
-        msg: `add user to blocklist err is ${err}`
+        msg: `add user to blockList err is ${err}`
       }
     }
   }
@@ -376,7 +376,7 @@ router.delete('/audio/blockList',
       socket.sockets.to(`room${roomId}`).emit('blockList', {
         userList: {
           status: 200,
-          data: ret.get('blocklist'),
+          data: ret.get('blockList'),
           msg: `success`
         }
       });
@@ -390,7 +390,7 @@ router.delete('/audio/blockList',
       ctx.body = {
         status: -1,
         data: {},
-        msg: `delete blocklist err is ${err}`
+        msg: `delete blockList err is ${err}`
       }
     }
   }
@@ -413,18 +413,18 @@ router.get('/audio/blockList',
           msg: `no room`
         }
       }
-      let blocklist = room.get('blockList')
+      let blockList = room.get('blockList')
       ctx.body = {
         status: 200,
-        data: blocklist,
+        data: blockList,
         msg: `success`
       }
     } catch (err) {
-      logger.error(`get blocklist err is `, err)
+      logger.error(`get blockList err is `, err)
       ctx.body = {
         status: -1,
         data: {},
-        msg: `get blocklist err is ${err}`
+        msg: `get blockList err is ${err}`
       }
     }
   }
