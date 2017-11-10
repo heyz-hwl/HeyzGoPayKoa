@@ -155,7 +155,11 @@ router.post('/audio/ban',
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('ban', {
-        userList: ret
+        userList: {
+          status: 200,
+          data: ret.get('blocklist'),
+          msg: `success`
+        }
       });
       ctx.body = {
         status: 200,
@@ -212,7 +216,11 @@ router.delete('/audio/ban',
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('ban', {
-        userList: ret
+        userList: {
+          status: 200,
+          data: ret.get('blocklist'),
+          msg: `success`
+        }
       });
       ctx.body = {
         status: 200,
@@ -248,16 +256,9 @@ router.get('/audio/ban',
         }
       }
       let ban = room.get('ban')
-      socket.sockets.to(`room${roomId}`).emit('ban', {
-        userList: {
-          ban: ban
-        }
-      });
       ctx.body = {
         status: 200,
-        data: {
-          ban: ban
-        },
+        data: ban,
         msg: `success`
       }
     } catch (err) {
@@ -312,7 +313,11 @@ router.post('/audio/blockList',
       theRoom.set('blockList', blockList)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('blockList', {
-        userList: ret
+        userList: {
+          status: 200,
+          data: ret.get('blocklist'),
+          msg: `success`
+        }
       });
       ctx.body = {
         status: 200,
@@ -369,7 +374,11 @@ router.delete('/audio/blockList',
       theRoom.set('blockList', blockList)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('blockList', {
-        userList: ret
+        userList: {
+          status: 200,
+          data: ret.get('blocklist'),
+          msg: `success`
+        }
       });
       ctx.body = {
         status: 200,
@@ -405,16 +414,9 @@ router.get('/audio/blockList',
         }
       }
       let blocklist = room.get('blockList')
-      socket.sockets.to(`room${roomId}`).emit('ban', {
-        userList: {
-          blocklist: blocklist
-        }
-      });
       ctx.body = {
         status: 200,
-        data: {
-          blocklist: blocklist
-        },
+        data: blocklist,
         msg: `success`
       }
     } catch (err) {
