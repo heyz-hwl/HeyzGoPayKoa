@@ -157,7 +157,7 @@ router.post('/audio/ban',
       socket.sockets.to(`room${roomId}`).emit('ban', {
         userList: {
           status: 200,
-          data: ret.get('blockList'),
+          data: ret.get('ban'),
           msg: `success`
         }
       });
@@ -218,7 +218,7 @@ router.delete('/audio/ban',
       socket.sockets.to(`room${roomId}`).emit('ban', {
         userList: {
           status: 200,
-          data: ret.get('blockList'),
+          data: ret.get('ban'),
           msg: `success`
         }
       });
