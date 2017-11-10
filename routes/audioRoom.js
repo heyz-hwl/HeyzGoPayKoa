@@ -813,8 +813,8 @@ router.post('/audio/userLeave',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let userId = ctx.request.body.deleteUserId || ctx.decode.userId
-      userId = _.isUndefined(ctx.request.body.deleteUserId) ? userId : ctx.request.body.deleteUserId;
+      let userId = ctx.request.body.userId || ctx.decode.userId
+      logger.debug(`userId`, userId)
       let roomId = ctx.request.body.roomId;
       let query = new AV.Query('AudioRoom');
       query.equalTo('objectId', roomId);
