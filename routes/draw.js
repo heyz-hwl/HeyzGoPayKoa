@@ -506,7 +506,7 @@ const prize1 = {
 const prize2 = {
   position: 2,
   title: `普通皮肤`,
-  url: `https://dn-msjbwutc.qbox.me/a0ce6e85713e340a551d.png`
+  url: `https://dn-msjbwutc.qbox.me/a2c0047873d6532fe81a.png`
 }
 const prize3 = {
   position: 3,
@@ -516,7 +516,7 @@ const prize3 = {
 const prize4 = {
   position: 4,
   title: `稀有皮肤`,
-  url: `https://dn-msjbwutc.qbox.me/0ec1dd1f2d67dd417d8d.png`
+  url: `https://dn-msjbwutc.qbox.me/88ffc2efe8e5a82ec4d6.png`
 }
 const prize6 = {
   position: 6,
@@ -531,12 +531,12 @@ const prize7 = {
 const prize8 = {
   position: 8,
   title: `史诗皮肤`,
-  url: `https://dn-msjbwutc.qbox.me/fbbc274596964cebbba5.png`
+  url: `https://dn-msjbwutc.qbox.me/5a895a02779a2274e4a7.png`
 }
 const prize9 = {
   position: 9,
   title: `传说皮肤`,
-  url: `https://dn-msjbwutc.qbox.me/f7545ef01b71a806d13f.png`
+  url: `https://dn-msjbwutc.qbox.me/b72dfe7a6180d6ebc60d.png`
 }
 
 const prizeMap = {
