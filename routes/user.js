@@ -1,5 +1,3 @@
-import { Number } from 'core-js/library/web/timers';
-
 const router = require('koa-router')()
 const AV = require('leancloud-storage');
 const async = require('async');
