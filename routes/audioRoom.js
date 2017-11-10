@@ -154,6 +154,7 @@ router.post('/audio/ban',
       ban.push(userId)
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
+      logger.error(`ret`, JSON.stringify(ret))
       socket.sockets.to(`room${roomId}`).emit('ban', {
         userList: {
           status: 200,
