@@ -1,3 +1,5 @@
+import { Number } from 'core-js/library/web/timers';
+
 const router = require('koa-router')()
 const AV = require('leancloud-storage');
 const async = require('async');
@@ -283,7 +285,7 @@ router.put('/user',
       } else {
         console.log('no nothing-->');
         let nickName = ctx.body.request.nickName; //昵称
-        let gender = ctx.body.request.gender ? Number(ctx.body.gender) : 1; //性别 1男 2女
+        let gender = ctx.request.body.gender //性别 1男 2女
         let profile = ctx.body.profile; //个性签名
         let user = AV.Object.createWithoutData("_User", userId);
         if (nickName) {
