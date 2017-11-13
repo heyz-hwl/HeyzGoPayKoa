@@ -17,6 +17,7 @@ const channel = require('./routes/audioChannel')
 const sign = require('./routes/sign')
 const user = require('./routes/user')
 const token = require('./routes/token')
+const register = require('./routes/register')
 const config = require('./lib/config')
 const AV = require('leancloud-storage')
 
@@ -63,6 +64,7 @@ app.use(room.routes(), room.allowedMethods())
 app.use(channel.routes(), channel.allowedMethods())
 app.use(sign.routes(), sign.allowedMethods())
 app.use(token.routes(), token.allowedMethods())
+app.use(register.routes(), register.allowedMethods())
 
 app.on('error', function (err, ctx) {
   console.log(err)
