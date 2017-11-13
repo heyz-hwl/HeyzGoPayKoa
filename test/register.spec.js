@@ -2,25 +2,27 @@ const request = require('supertest')
 const {
   expect
 } = require('chai')
-const {
-  createToken
-} = require('../lib/jwt')
+const moment = require('moment')
 const server = require('../app')
 const AV = require('leancloud-storage')
 const config = require('../lib/config')
 
-describe('test token sign', async() => {
+describe('test CompeteRegister', async() => {
   let api;
-  let token;
   beforeEach(async() => {
     api = request(server)
-    token = await createToken()
   })
 
-  it('responds to sign', (done) => {
-    api.get('/v1/sign')
-      .query({
-        access_token: token
+  it('response to register', (done) => {
+    api.post('/v1/register')
+      .send({
+        phone: `13088888888`,
+        nickName: `王者荣耀`,
+        gender: 1,
+        type: 1,
+        isWechat: true,
+        level: `最强王者100星`,
+        wechat: `123123123`
       })
       .expect('Content-Type', /json/)
       .expect(200)
@@ -31,10 +33,10 @@ describe('test token sign', async() => {
       })
   })
 
-  it('responds to sign/status', (done) => {
-    api.get('/v1/sign/status')
+  it.only('response to get one week register', (done) => {
+    api.get('/v1/register')
       .query({
-        access_token: token
+        time: `1510568028`
       })
       .expect('Content-Type', /json/)
       .expect(200)
