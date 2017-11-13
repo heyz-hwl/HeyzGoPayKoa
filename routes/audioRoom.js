@@ -20,12 +20,10 @@ router.get('/audio/bgPic',
       query.equalTo('mime_type', 'default_cover')
       query.select('url')
       let cover = await query.find()
-      logger.debug(`cover`, JSON.stringify(cover))
       let query2 = new AV.Query('_File')
       query2.equalTo('mime_type', 'default_icon')
-      query.select('url')
-      let icon = await query.find()
-      logger.debug(`icon`, JSON.stringify(icon))
+      query2.select('url')
+      let icon = await query2.find()
       ctx.body = {
         status: 200,
         data: {
@@ -154,7 +152,6 @@ router.post('/audio/ban',
       ban.push(userId)
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
-      logger.error(`ret`, JSON.stringify(ret))
       socket.sockets.to(`room${roomId}`).emit('ban', {
         userList: {
           status: 200,
