@@ -3,6 +3,8 @@ const router = require('koa-router')()
 const jwt = require('../lib/jwt');
 const async = require('async');
 const _ = require('lodash');
+const moment = require('moment')
+const db = require('../lib/db')
 const socket = require('../lib/socket');
 const util = require('../lib/util');
 const heroMsg = require('./hok').heroMap;
@@ -10,6 +12,118 @@ const log4js = require('koa-log4')
 const logger = log4js.getLogger('router')
 
 router.prefix('/v1')
+
+//mysql 大房间
+router.post('/bigRoom',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let {
+        title,
+        cover,
+        icon
+      } = ctx.request.body
+      let userId = ctx.decode.userId
+      if (!title || !cover || !icon) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `params missing`
+        }
+      }
+      let time = moment().format('YYYY-MM-DD HH:mm:ss')
+      let sql = `insert into BigRoom values(null,"${title}","${userId}","${cover}","${icon}","${time}")`
+      let ret = await db.excute(sql)
+      if (ret) {
+        return ctx.body = {
+          status: 200,
+          data: ret,
+          msg: `success`
+        }
+      }
+      ctx.body = {
+        status: -1,
+        data: `ret is ` + JSON.stringify(ret),
+        msg: `no ret`
+      }
+    } catch (err) {
+      logger.error('create bigRoom err is', err)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `create bigRoom err is ${err}`
+      }
+    }
+  }
+)
+
+//post user to bigRoom
+router.post('/bigRoom/user',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let roomId = ctx.request.body.roomId
+      if (!roomId) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `params missing`
+        }
+      }
+      let time = moment().format('YYYY-MM-DD HH:mm:ss')
+      let userId = ctx.decode.userId
+      let sql = `insert into UserBigRoom values(null,"${roomId}","${userId}","${time}")`
+      let ret = await db.excute(sql)
+      if (ret) {
+        return ctx.body = {
+          status: 200,
+          data: ret,
+          msg: `success`
+        }
+      }
+    } catch (err) {
+      logger.error('post user to bigRoom err is', err)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `post user to bigRoom err is ${err}`
+      }
+    }
+  }
+)
+
+//查房间用户信息
+router.get('/bigRoom',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let roomId = ctx.query.roomId
+      let sql = roomId ? `select * from BigRoom where id = "${roomId}"` : `select * from BigRoom where 1 = 1`
+      logger.debug(`sql`, sql)
+      let ret = await db.excute(sql)
+      logger.debug(`all bigrooms`, ret)
+      if(!ret){
+        return ctx.body = {
+          status: 204,
+          data: {},
+          msg: `no big room`
+        }
+      }
+      sql = `select * `
+      ctx.body = {
+        status: 200,
+        data: ret,
+        msg: `success`
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `get b rooms is ${err}` 
+      }
+    }
+  }
+)
 
 //get default bg pic url
 router.get('/audio/bgPic',
@@ -55,11 +169,11 @@ router.put('/audio/selectPic',
       } = ctx.request.body
       console.log(`coverId is ${coverId} iconId is ${iconId} roomId is ${roomId}`)
       let room = AV.Object.createWithoutData('AudioRoom', roomId)
-      if(coverId){
+      if (coverId) {
         let cover = AV.Object.createWithoutData('_File', coverId)
         room.set('background', cover)
       }
-      if(iconId){
+      if (iconId) {
         let icon = AV.Object.createWithoutData('_File', iconId)
         room.set('icon', icon)
       }
@@ -157,11 +271,7 @@ router.post('/audio/ban',
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('ban', {
-        userList: {
-          status: 200,
           data: ret.get('ban'),
-          msg: `success`
-        }
       });
       ctx.body = {
         status: 200,
@@ -219,11 +329,7 @@ router.post('/audio/deleteBan',
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('ban', {
-        userList: {
-          status: 200,
           data: ret.get('ban'),
-          msg: `success`
-        }
       });
       ctx.body = {
         status: 200,
@@ -280,11 +386,7 @@ router.delete('/audio/ban',
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('ban', {
-        userList: {
-          status: 200,
-          data: ret.get('ban'),
-          msg: `success`
-        }
+        data: ret.get('ban')
       });
       ctx.body = {
         status: 200,
@@ -377,11 +479,7 @@ router.post('/audio/blockList',
       theRoom.set('blockList', blockList)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('blockList', {
-        userList: {
-          status: 200,
           data: ret.get('blockList'),
-          msg: `success`
-        }
       });
       ctx.body = {
         status: 200,
@@ -438,11 +536,7 @@ router.delete('/audio/blockList',
       theRoom.set('blockList', blockList)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('blockList', {
-        userList: {
-          status: 200,
           data: ret.get('blockList'),
-          msg: `success`
-        }
       });
       ctx.body = {
         status: 200,
@@ -575,6 +669,37 @@ router.get('/audio/userInfo',
       }
     }
   })
+
+//获取大房间的用户信息
+//这里的 roomId 是 MySQL 的 BigRoom ->roomId
+const getBigRoomUserInfo = (roomId) => {
+  return new Promise(async(resolve, reject) => {
+    try {
+      let data = [];
+      if (!roomId) {
+        reject(`no roomId`)
+      }
+      let sql = `select userId from UserBigRoom where roomId = "${roomId}" order by time DESC`
+      let userList = await db.excute(sql)
+      let sql2 = `select ownerId from BigRoom where id = "${roomId}"`
+      let owner = []
+      owner.push(await db.excute(sql2))
+      let arr = Array(owner, ...userList);
+      arr.forEach((item, index) => {
+        data.push(new Promise(async(resolve, reject) => {
+          let query = new AV.Query('_User');
+          query.equalTo('objectId', item);
+          let user = await query.first()
+          resolve(UserInfo(user));
+        }))
+      })
+      let result = await Promise.all(data)
+      resolve(result)
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
 
 //获取房间内用户信息
 //这里的 room 是 leanCloud 的 Room
@@ -780,7 +905,6 @@ router.get('/audio/rooms',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let data = [];
       let promise = [];
       let limit = ctx.query.limit ? Number(ctx.query.limit) : 5;
       let skip = ctx.query.skip ? Number(ctx.query.skip) : 0;
@@ -796,17 +920,22 @@ router.get('/audio/rooms',
       let roomList = await query.find()
       roomList.forEach((room, index) => {
         promise.push(new Promise(async(resolve, reject) => {
-          let userInfo = await getRoomUserInfo(room)
-          logger.debug(`userInfo`, userInfo)
-          resolve({
-            roomId: room.get('objectId'),
-            title: room.get('title'),
-            roomNub: room.get('roomNub'),
-            number: room.get('member').length + 1,
-            imageUrl: room.get('background').get('url'),
-            icon: room.get('icon').get('url'),
-            user: userInfo
-          })
+          try {
+            let userInfo = await getRoomUserInfo(room)
+            logger.debug(`userInfo`, userInfo)
+            let data = {
+              roomId: room.get('objectId'),
+              title: room.get('title'),
+              roomNub: room.get('roomNub'),
+              number: room.get('member').length + 1,
+              imageUrl: room.get('background').get('url'),
+              icon: room.get('icon').get('url'),
+              user: userInfo
+            }
+            resolve(data)
+          } catch (err) {
+            reject(err)
+          }
         }))
       })
       let ret = await Promise.all(promise)
