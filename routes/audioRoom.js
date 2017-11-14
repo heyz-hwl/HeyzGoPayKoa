@@ -92,24 +92,100 @@ router.post('/bigRoom/user',
   }
 )
 
+//delete bigRoom
+router.delete('/bigRoom',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let roomId = ctx.request.body.roomId
+      let sql = `delete from BigRoom where id="${roomId}"`
+      let ret = await db.excute(sql)
+      if (ret) {
+        return ctx.body = {
+          status: 200,
+          data: ret,
+          msg: `success`
+        }
+      }
+      ctx.body = {
+        status: -1,
+        data: `ret is ` + JSON.stringify(ret),
+        msg: `no ret`
+      }
+    } catch (err) {
+      logger.error('delete bigRoom err is', err)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `delete bigRoom err is ${err}`
+      }
+    }
+  }
+)
+
+//delete user from bigRoom
+router.delete('/bigRoom/user',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let {
+        roomId, 
+        userId
+      } = ctx.request.body
+      let sql = `delete from UserBigRoom where roomId="${roomId}" and userId="${userId}"`
+      let ret = await db.excute(sql)
+      if (ret) {
+        return ctx.body = {
+          status: 200,
+          data: ret,
+          msg: `success`
+        }
+      }
+      ctx.body = {
+        status: -1,
+        data: `ret is ` + JSON.stringify(ret),
+        msg: `no ret`
+      }
+    } catch (err) {
+      logger.error('delete user from bigRoom err is', err)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `delete user from bigRoom err is ${err}`
+      }
+    }
+  }
+)
+
 //查房间用户信息
 router.get('/bigRoom',
   jwt.verify,
   async(ctx, next) => {
     try {
       let roomId = ctx.query.roomId
-      let sql = roomId ? `select * from BigRoom where id = "${roomId}"` : `select * from BigRoom where 1 = 1`
-      logger.debug(`sql`, sql)
-      let ret = await db.excute(sql)
-      logger.debug(`all bigrooms`, ret)
-      if(!ret){
-        return ctx.body = {
-          status: 204,
-          data: {},
-          msg: `no big room`
-        }
+      let roomIdList = [],
+        promise = []
+      if (roomId) {
+        roomIdList.push({
+          id: roomId
+        })
+      } else {
+        let sql = `select id from BigRoom where 1 = 1`
+        roomIdList = await db.excute(sql)
       }
-      sql = `select * `
+      logger.debug(`roomIdList`, roomIdList)
+      roomIdList.forEach((roomId) => {
+        promise.push(new Promise(async(resolve, reject) => {
+          try {
+            let user = await getBigRoomUserInfo(roomId.id)
+            logger.debug(`user`, user)
+            resolve(user)
+          } catch (err) {
+            reject(err)
+          }
+        }))
+      })
+      let ret = await Promise.all(promise)
       ctx.body = {
         status: 200,
         data: ret,
@@ -119,7 +195,7 @@ router.get('/bigRoom',
       ctx.body = {
         status: -1,
         data: {},
-        msg: `get b rooms is ${err}` 
+        msg: `get b rooms is ${err}`
       }
     }
   }
@@ -271,7 +347,7 @@ router.post('/audio/ban',
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('ban', {
-          data: ret.get('ban'),
+        data: ret.get('ban'),
       });
       ctx.body = {
         status: 200,
@@ -329,7 +405,7 @@ router.post('/audio/deleteBan',
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('ban', {
-          data: ret.get('ban'),
+        data: ret.get('ban'),
       });
       ctx.body = {
         status: 200,
@@ -479,7 +555,7 @@ router.post('/audio/blockList',
       theRoom.set('blockList', blockList)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('blockList', {
-          data: ret.get('blockList'),
+        data: ret.get('blockList'),
       });
       ctx.body = {
         status: 200,
@@ -536,7 +612,7 @@ router.delete('/audio/blockList',
       theRoom.set('blockList', blockList)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('blockList', {
-          data: ret.get('blockList'),
+        data: ret.get('blockList'),
       });
       ctx.body = {
         status: 200,
@@ -679,12 +755,12 @@ const getBigRoomUserInfo = (roomId) => {
       if (!roomId) {
         reject(`no roomId`)
       }
-      let sql = `select userId from UserBigRoom where roomId = "${roomId}" order by time DESC`
-      let userList = await db.excute(sql)
-      let sql2 = `select ownerId from BigRoom where id = "${roomId}"`
-      let owner = []
-      owner.push(await db.excute(sql2))
-      let arr = Array(owner, ...userList);
+      let sql = `select ownerId from BigRoom where id = "${roomId}" order by time DESC`
+      let ownerId = await db.excute(sql)
+      sql = `select userId from UserBigRoom where roomId = "${roomId}"`
+      let userId = await db.excute(sql)
+      logger.debug(`ownerId, userId`, ownerId, userId)
+      let arr = _.isEmpty(userId) ? [ownerId[0].ownerId] : [ownerId[0].ownerId, ...[userId[0].userId]]
       arr.forEach((item, index) => {
         data.push(new Promise(async(resolve, reject) => {
           let query = new AV.Query('_User');
