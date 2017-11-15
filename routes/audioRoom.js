@@ -606,6 +606,62 @@ router.post('/audio/blockList',
   }
 )
 
+router.post('/audio/blockList/iOS',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let userId = ctx.request.body.userId
+      let roomId = ctx.request.body.roomId
+      let ownerId = ctx.decode.userId
+      console.log(`------> userId is ${userId}, roomId is ${roomId} ownerId is ${ownerId}`)
+      let query = new AV.Query('AudioRoom')
+      query.equalTo('objectId', roomId)
+      let room = await query.first()
+      if (!room) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `no room`
+        }
+      }
+      if (room.get('owner') !== ownerId) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `只有房主才有这个权力`
+        }
+      }
+      let blockList = room.get('blockList')
+      if (!blockList.includes(userId)) {
+        return ctx.body = {
+          status: 202,
+          data: {},
+          msg: `该用户不在黑名单中`
+        }
+      }
+      let theRoom = AV.Object.createWithoutData('AudioRoom', roomId)
+      blockList.splice(blockList.indexOf(userId), 1)
+      theRoom.set('blockList', blockList)
+      let ret = await theRoom.save()
+      socket.sockets.to(`room${roomId}`).emit('blockList', {
+        data: ret.get('blockList')
+      })
+      ctx.body = {
+        status: 200,
+        data: ret,
+        msg: `success`
+      }
+    } catch (err) {
+      logger.error(`delete blockList err is `, err)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `delete blockList err is ${err}`
+      }
+    }
+  }
+)
+
 router.delete('/audio/blockList',
   jwt.verify,
   async(ctx, next) => {
@@ -825,7 +881,7 @@ const getRoomUserInfo = (room) => {
           let query = new AV.Query('_User')
           query.equalTo('objectId', item)
           let user = await query.first()
-          if(!user){
+          if (!user) {
             reject(`user err`)
           }
           resolve(UserInfo(user))
@@ -876,7 +932,7 @@ const getUserInfo = (userIds) => {
           let query = new AV.Query('_User')
           query.equalTo('objectId', userId)
           let user = await query.first()
-          if(_.isUndefined(user)){
+          if (_.isUndefined(user)) {
             reject(`user err`)
           }
           resolve(UserInfo(user))
