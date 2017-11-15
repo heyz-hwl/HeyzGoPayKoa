@@ -1,19 +1,17 @@
-const AV = require('leancloud-storage');
+const AV = require('leancloud-storage')
 const router = require('koa-router')()
-const jwt = require('../lib/jwt');
-const async = require('async');
-const _ = require('lodash');
+const jwt = require('../lib/jwt')
+const async = require('async')
+const _ = require('lodash')
 const moment = require('moment')
 const db = require('../lib/db')
-const socket = require('../lib/socket');
-const util = require('../lib/util');
-const heroMsg = require('./hok').heroMap;
+const socket = require('../lib/socket')
 const log4js = require('koa-log4')
 const logger = log4js.getLogger('router')
 
 router.prefix('/v1')
 
-router.get('/twoRoom', 
+router.get('/twoRoom',
   jwt.verify,
   async(ctx, next) => {
     let userId = ctx.query.userId
@@ -21,7 +19,7 @@ router.get('/twoRoom',
     let sql = `select socketId from ConnectedUser where userId = "${userId}"`
     let socketId = await db.excute(sql)
     logger.debug(`socketId`, socket.sockets.connected[socketId[0].socketId])
-    if(socket.sockets.connected[socketId[0].socketId]){
+    if (socket.sockets.connected[socketId[0].socketId]) {
       socket.sockets.connected[socketId[0].socketId].emit('phoneCall', data)
       return ctx.body = {
         status: 200,
@@ -37,7 +35,7 @@ router.get('/twoRoom',
   }
 )
 
-//mysql 大房间
+// mysql 大房间
 router.post('/bigRoom',
   jwt.verify,
   async(ctx, next) => {
@@ -81,7 +79,7 @@ router.post('/bigRoom',
   }
 )
 
-//post user to bigRoom
+// post user to bigRoom
 router.post('/bigRoom/user',
   jwt.verify,
   async(ctx, next) => {
@@ -116,7 +114,7 @@ router.post('/bigRoom/user',
   }
 )
 
-//delete bigRoom
+// delete bigRoom
 router.delete('/bigRoom',
   jwt.verify,
   async(ctx, next) => {
@@ -149,13 +147,13 @@ router.delete('/bigRoom',
   }
 )
 
-//delete user from bigRoom
+// delete user from bigRoom
 router.delete('/bigRoom/user',
   jwt.verify,
   async(ctx, next) => {
     try {
       let {
-        roomId, 
+        roomId,
         userId
       } = ctx.request.body
       let sql = `delete from UserBigRoom where roomId="${roomId}" and userId="${userId}"`
@@ -183,7 +181,7 @@ router.delete('/bigRoom/user',
   }
 )
 
-//查房间用户信息
+// 查房间用户信息
 router.get('/bigRoom',
   jwt.verify,
   async(ctx, next) => {
@@ -227,7 +225,7 @@ router.get('/bigRoom',
   }
 )
 
-//get default bg pic url
+// get default bg pic url
 router.get('/audio/bgPic',
   jwt.verify,
   async(ctx, next) => {
@@ -259,7 +257,7 @@ router.get('/audio/bgPic',
   }
 )
 
-//选择封面和 icon
+// 选择封面和 icon
 router.put('/audio/selectPic',
   jwt.verify,
   async(ctx, next) => {
@@ -332,7 +330,7 @@ router.put('/audio/selectPic',
 //   }
 // )
 
-//房主把某用户加入到禁言列表中
+// 房主把某用户加入到禁言列表中
 router.post('/audio/ban',
   jwt.verify,
   async(ctx, next) => {
@@ -373,8 +371,8 @@ router.post('/audio/ban',
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('ban', {
-        data: ret.get('ban'),
-      });
+        data: ret.get('ban')
+      })
       ctx.body = {
         status: 200,
         data: ret,
@@ -391,7 +389,7 @@ router.post('/audio/ban',
   }
 )
 
-//delete for iOS
+// delete for iOS
 router.post('/audio/deleteBan',
   jwt.verify,
   async(ctx, next) => {
@@ -431,8 +429,8 @@ router.post('/audio/deleteBan',
       theRoom.set('ban', ban)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('ban', {
-        data: ret.get('ban'),
-      });
+        data: ret.get('ban')
+      })
       ctx.body = {
         status: 200,
         data: ret,
@@ -489,7 +487,7 @@ router.delete('/audio/ban',
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('ban', {
         data: ret.get('ban')
-      });
+      })
       ctx.body = {
         status: 200,
         data: ret,
@@ -540,7 +538,7 @@ router.get('/audio/ban',
   }
 )
 
-//房主把某用户加入到黑名单
+// 房主把某用户加入到黑名单
 router.post('/audio/blockList',
   jwt.verify,
   async(ctx, next) => {
@@ -581,8 +579,8 @@ router.post('/audio/blockList',
       theRoom.set('blockList', blockList)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('blockList', {
-        data: ret.get('blockList'),
-      });
+        data: ret.get('blockList')
+      })
       ctx.body = {
         status: 200,
         data: ret,
@@ -638,14 +636,14 @@ router.delete('/audio/blockList',
       theRoom.set('blockList', blockList)
       let ret = await theRoom.save()
       socket.sockets.to(`room${roomId}`).emit('blockList', {
-        data: ret.get('blockList'),
-      });
+        data: ret.get('blockList')
+      })
       ctx.body = {
         status: 200,
         data: ret,
         msg: `success`
       }
-    } catch (error) {
+    } catch (err) {
       logger.error(`delete blockList err is `, err)
       ctx.body = {
         status: -1,
@@ -674,9 +672,10 @@ router.get('/audio/blockList',
         }
       }
       let blockList = room.get('blockList')
+      let ret = await getUserInfo(blockList)
       ctx.body = {
         status: 200,
-        data: blockList,
+        data: ret,
         msg: `success`
       }
     } catch (err) {
@@ -690,14 +689,14 @@ router.get('/audio/blockList',
   }
 )
 
-//查询用户在哪个房间
+// 查询用户在哪个房间
 router.get('/audio/userRoom',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let userId = ctx.decode.userId;
+      let userId = ctx.decode.userId
       if (ctx.query.userId) {
-        userId = ctx.query.userId;
+        userId = ctx.query.userId
       }
       let data = await userRoom(userId)
       if (_.isEmpty(data)) {
@@ -721,21 +720,21 @@ router.get('/audio/userRoom',
     }
   })
 
-//获取用户所在房间
+// 获取用户所在房间
 const userRoom = (userId) => {
   return new Promise(async(resolve, reject) => {
-    let query1 = new AV.Query('AudioRoom');
-    query1.containedIn('member', [userId]);
-    let query2 = new AV.Query('AudioRoom');
-    query2.equalTo('owner', userId);
-    let query = AV.Query.or(query1, query2);
+    let query1 = new AV.Query('AudioRoom')
+    query1.containedIn('member', [userId])
+    let query2 = new AV.Query('AudioRoom')
+    query2.equalTo('owner', userId)
+    let query = AV.Query.or(query1, query2)
     query.include('icon')
     let room = await query.first()
     if (!room) {
       resolve({})
     }
-    let isHost = room.get('owner') == userId ? true : false;
-    let icon = room.get('icon').get('url');
+    let isHost = room.get('owner') == userId
+    let icon = room.get('icon').get('url')
     logger.debug(`icon`, icon)
     let data = {
       roomId: room.get('objectId'),
@@ -748,14 +747,14 @@ const userRoom = (userId) => {
   })
 }
 
-//获取当前房间内的用户信息
+// 获取当前房间内的用户信息
 router.get('/audio/userInfo',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let roomId = ctx.query.roomId;
+      let roomId = ctx.query.roomId
       let query = new AV.Query('AudioRoom')
-      query.equalTo('objectId', roomId);
+      query.equalTo('objectId', roomId)
       let room = await query.first()
       let data = await getRoomUserInfo(room)
       ctx.body = {
@@ -772,12 +771,12 @@ router.get('/audio/userInfo',
     }
   })
 
-//获取大房间的用户信息
-//这里的 roomId 是 MySQL 的 BigRoom ->roomId
+// 获取大房间的用户信息
+// 这里的 roomId 是 MySQL 的 BigRoom ->roomId
 const getBigRoomUserInfo = (roomId) => {
   return new Promise(async(resolve, reject) => {
     try {
-      let data = [];
+      let data = []
       if (!roomId) {
         reject(`no roomId`)
       }
@@ -789,10 +788,10 @@ const getBigRoomUserInfo = (roomId) => {
       let arr = _.isEmpty(userId) ? [ownerId[0].ownerId] : [ownerId[0].ownerId, ...[userId[0].userId]]
       arr.forEach((item, index) => {
         data.push(new Promise(async(resolve, reject) => {
-          let query = new AV.Query('_User');
-          query.equalTo('objectId', item);
+          let query = new AV.Query('_User')
+          query.equalTo('objectId', item)
           let user = await query.first()
-          resolve(UserInfo(user));
+          resolve(UserInfo(user))
         }))
       })
       let result = await Promise.all(data)
@@ -803,22 +802,22 @@ const getBigRoomUserInfo = (roomId) => {
   })
 }
 
-//获取房间内用户信息
-//这里的 room 是 leanCloud 的 Room
+// 获取房间内用户信息
+// 这里的 room 是 leanCloud 的 Room
 const getRoomUserInfo = (room) => {
   return new Promise(async(resolve, reject) => {
     try {
-      let data = [];
+      let data = []
       if (!room) {
         reject(`no room`)
       }
-      let arr = Array(room.get('owner')).concat(room.get('member'));
+      let arr = Array(room.get('owner')).concat(room.get('member'))
       arr.forEach((item, index) => {
         data.push(new Promise(async(resolve, reject) => {
-          let query = new AV.Query('_User');
-          query.equalTo('objectId', item);
+          let query = new AV.Query('_User')
+          query.equalTo('objectId', item)
           let user = await query.first()
-          resolve(UserInfo(user));
+          resolve(UserInfo(user))
         }))
       })
       let result = await Promise.all(data)
@@ -829,15 +828,15 @@ const getRoomUserInfo = (room) => {
   })
 }
 
-//排序
-//数组第一个是房主,剩下的按 room.get('member')的顺序排
+// 排序
+// 数组第一个是房主,剩下的按 room.get('member')的顺序排
 const order = async(data, room) => {
   return new Promise((resolve, reject) => {
-    let result = [];
-    let ret = [];
+    let result = []
+    let ret = []
     async.each(data, (item, callback) => {
-      if (item.userId == room.get('owner')) {
-        result.unshift(item);
+      if (item.userId === room.get('owner')) {
+        result.unshift(item)
       } else {
         result.push(item)
       }
@@ -845,18 +844,39 @@ const order = async(data, room) => {
     }, (err) => {
       for (let i = 0; i < room.get('member').length; i++) {
         for (let j = 1; j < result.length; j++) {
-          if (room.get('member')[i] == result[j].userId) {
+          if (room.get('member')[i] === result[j].userId) {
             ret.push(result[j])
           }
         }
       }
-      ret.unshift(result[0]);
+      ret.unshift(result[0])
       resolve(ret)
     })
   })
 }
 
-//数据结构化
+// 获取userId[]的详细信息
+const getUserInfo = (userIds) => {
+  return new Promise(async(resolve, reject) => {
+    try {
+      let promise = []
+      userIds.forEach((userId) => {
+        promise.push(new Promise(async(resolve, reject) => {
+          let query = new AV.Query('_User')
+          query.equalTo('objectId', userId)
+          let user = await query.first()
+          resolve(UserInfo(user))
+        }))
+      })
+      let ret = await Promise.all(promise)
+      resolve(ret)
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
+
+// 数据结构化
 const UserInfo = (user) => {
   let userInfo = {
     userId: user.get('objectId'),
@@ -865,21 +885,21 @@ const UserInfo = (user) => {
     gender: _.isUndefined(user.get('gender')) ? '' : user.get('gender'),
     onlineTime: user.get(`onlineTime`)
   }
-  return userInfo;
+  return userInfo
 }
 
-//生成房间 ID
-//暂时没加特殊号码保留
+// 生成房间 ID
+// 暂时没加特殊号码保留
 const makeRoomNumber = async() => {
   return new Promise((resolve, reject) => {
     try {
-      let query = new AV.Query('AudioRoom');
-      query.addDescending('roomNub');
+      let query = new AV.Query('AudioRoom')
+      query.addDescending('roomNub')
       query.first().then((room) => {
         if (!room) {
-          resolve('10001');
+          resolve('10001')
         } else {
-          resolve(Number(room.get('roomNub')) + 1);
+          resolve(Number(room.get('roomNub')) + 1)
         }
       })
     } catch (err) {
@@ -888,18 +908,18 @@ const makeRoomNumber = async() => {
   })
 }
 
-//创建房间
+// 创建房间
 router.post('/audio/room',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let audioRoom = AV.Object.new('AudioRoom');
+      let audioRoom = AV.Object.new('AudioRoom')
       let {
         title,
         cover,
         icon
       } = ctx.request.body
-      let owner = ctx.decode.userId;
+      let owner = ctx.decode.userId
       let result = await userRoom(owner)
       if (typeof (result) !== String && !_.isEmpty(result)) {
         return ctx.body = {
@@ -913,13 +933,13 @@ router.post('/audio/room',
       audioRoom.set('background', file)
       audioRoom.set('icon', file2)
       let roomNub = await makeRoomNumber()
-      audioRoom.set('owner', owner);
-      audioRoom.set('title', title);
-      audioRoom.set('roomNub', String(roomNub));
-      audioRoom.set('member', []);
-      audioRoom.set('lastMember', []);
-      let query1 = new AV.Query('_User');
-      query1.equalTo('objectId', owner);
+      audioRoom.set('owner', owner)
+      audioRoom.set('title', title)
+      audioRoom.set('roomNub', String(roomNub))
+      audioRoom.set('member', [])
+      audioRoom.set('lastMember', [])
+      let query1 = new AV.Query('_User')
+      query1.equalTo('objectId', owner)
       let user = await query1.first()
       if (user.get('level') < 6) {
         return ctx.body = {
@@ -928,8 +948,8 @@ router.post('/audio/room',
           msg: `需要6级才能创建房间`
         }
       }
-      let levelGrade = user.get('level') * 1;
-      audioRoom.set('grade', levelGrade);
+      let levelGrade = user.get('level') * 1
+      audioRoom.set('grade', levelGrade)
       let room = await audioRoom.save()
       ctx.body = {
         status: 200,
@@ -946,17 +966,16 @@ router.post('/audio/room',
     }
   })
 
-
-//修改房间 title
+// 修改房间 title
 router.put('/audio/roomTitle',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let data = ctx.request.body;
-      let title = data.title;
-      let roomId = data.roomId;
-      let owner = ctx.decode.userId;
-      let query = new AV.Query('AudioRoom');
+      let data = ctx.request.body
+      let title = data.title
+      let roomId = data.roomId
+      let owner = ctx.decode.userId
+      let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId)
       let room = await query.first()
       if (!room) {
@@ -966,7 +985,7 @@ router.put('/audio/roomTitle',
           msg: 'no room'
         }
       }
-      let creator = room.get('owner');
+      let creator = room.get('owner')
       if (owner !== creator) {
         return ctx.body = {
           status: 1001,
@@ -980,10 +999,10 @@ router.put('/audio/roomTitle',
           msg: 'Parameter Missing!'
         }
       }
-      let roomObj = AV.Object.createWithoutData('AudioRoom', roomId);
-      roomObj.set('title', title);
+      let roomObj = AV.Object.createWithoutData('AudioRoom', roomId)
+      roomObj.set('title', title)
       let ret = await roomObj.save()
-      socket.sockets.in(`room${roomId}`).emit('updateRoomTitle', title);
+      socket.sockets.in(`room${roomId}`).emit('updateRoomTitle', title)
       ctx.body = {
         status: 200,
         data: ret,
@@ -999,26 +1018,26 @@ router.put('/audio/roomTitle',
     }
   })
 
-//获取所有房间列表
-//需要分页
-//需要房主信息
-//如传一个 roomId 则返回该房间的信息
+// 获取所有房间列表
+// 需要分页
+// 需要房主信息
+// 如传一个 roomId 则返回该房间的信息
 router.get('/audio/rooms',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let promise = [];
-      let limit = ctx.query.limit ? Number(ctx.query.limit) : 5;
-      let skip = ctx.query.skip ? Number(ctx.query.skip) : 0;
-      let query = new AV.Query('AudioRoom');
+      let promise = []
+      let limit = ctx.query.limit ? Number(ctx.query.limit) : 5
+      let skip = ctx.query.skip ? Number(ctx.query.skip) : 0
+      let query = new AV.Query('AudioRoom')
       if (!_.isUndefined(ctx.query.roomId)) {
         query.equalTo('objectId', ctx.query.roomId)
       }
       query.include('background')
       query.include('icon')
-      query.addDescending('grade');
-      query.limit(limit);
-      query.skip(skip);
+      query.addDescending('grade')
+      query.limit(limit)
+      query.skip(skip)
       let roomList = await query.find()
       roomList.forEach((room, index) => {
         promise.push(new Promise(async(resolve, reject) => {
@@ -1055,17 +1074,17 @@ router.get('/audio/rooms',
     }
   })
 
-//房间新加入用户
+// 房间新加入用户
 router.post('/audio/user',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let userId = ctx.decode.userId;
-      let roomId = ctx.request.body.roomId;
-      let numberLimit = 9;
+      let userId = ctx.decode.userId
+      let roomId = ctx.request.body.roomId
+      let numberLimit = 9
       let data = await userRoom(userId)
-      let query = new AV.Query('AudioRoom');
-      query.equalTo('objectId', roomId);
+      let query = new AV.Query('AudioRoom')
+      query.equalTo('objectId', roomId)
       let result = await query.first()
       if (!result) {
         return ctx.body = {
@@ -1074,7 +1093,7 @@ router.post('/audio/user',
           msg: 'no room'
         }
       }
-      let member = result.get('member');
+      let member = result.get('member')
       if (member.indexOf(userId) > -1 || userId == result.get('owner')) {
         return ctx.body = {
           status: 403,
@@ -1096,9 +1115,9 @@ router.post('/audio/user',
           msg: '人数已满'
         }
       }
-      member.push(userId);
-      let room = AV.Object.createWithoutData('AudioRoom', result.get('objectId'));
-      room.set('member', member);
+      member.push(userId)
+      let room = AV.Object.createWithoutData('AudioRoom', result.get('objectId'))
+      room.set('member', member)
       let roomRet = await room.save()
       let ret = await getRoomUserInfo(result)
       socket.sockets.in(`room${roomId}`).emit('userJoinRoom', {
@@ -1119,16 +1138,16 @@ router.post('/audio/user',
     }
   })
 
-//用户离开房间
+// 用户离开房间
 router.post('/audio/userLeave',
   jwt.verify,
   async(ctx, next) => {
     try {
       let userId = ctx.request.body.userId || ctx.decode.userId
       logger.debug(`userId`, userId)
-      let roomId = ctx.request.body.roomId;
-      let query = new AV.Query('AudioRoom');
-      query.equalTo('objectId', roomId);
+      let roomId = ctx.request.body.roomId
+      let query = new AV.Query('AudioRoom')
+      query.equalTo('objectId', roomId)
       let result = await query.first()
       if (!result) {
         return ctx.body = {
@@ -1137,52 +1156,52 @@ router.post('/audio/userLeave',
           msg: 'no room'
         }
       }
-      let room = AV.Object.createWithoutData('AudioRoom', result.get('objectId'));
-      let member = result.get('member');
-      let query2 = new AV.Query('_User');
+      let room = AV.Object.createWithoutData('AudioRoom', result.get('objectId'))
+      let member = result.get('member')
+      let query2 = new AV.Query('_User')
       if (member.length > 1) {
-        query2.equalTo('objectId', member[0]);
+        query2.equalTo('objectId', member[0])
       }
       let user = await query2.first()
-      let query3 = new AV.Query('_User');
-      query3.equalTo('objectId', result.get('owner'));
+      let query3 = new AV.Query('_User')
+      query3.equalTo('objectId', result.get('owner'))
       let owner = await query3.first()
-      if (member.indexOf(userId) < 0) { //不在成员列表中
+      if (member.indexOf(userId) < 0) { // 不在成员列表中
         if (result.get('owner') == userId) {
-          //作为房主退出房间
-          if (_.get(member, 'length', 0) == 0) { //并且房内已经没有成员
+          // 作为房主退出房间
+          if (_.get(member, 'length', 0) == 0) { // 并且房内已经没有成员
             let v = await room.destroy()
             return ctx.body = {
               status: 201,
               data: v,
               msg: `房间已经没有用户, 房间被删除`
             }
-          } else { //房内还有人, 把房主让给 member[0]
-            let grade = user.get('level') - owner.get('level');
-            room.set('grade', result.get('grade') + grade);
+          } else { // 房内还有人, 把房主让给 member[0]
+            let grade = user.get('level') - owner.get('level')
+            room.set('grade', result.get('grade') + grade)
             console.log(`user.get('level') is ${user.get('level')}  owner.get('level') is ${owner.get('level')}}`)
-            room.set('owner', member[0]);
-            member.shift();
+            room.set('owner', member[0])
+            member.shift()
           }
-        } else { //不在成员列表中,又不是房主=不在房间内
+        } else { // 不在成员列表中,又不是房主=不在房间内
           return ctx.body = {
             status: -1,
             data: {},
             msg: `该用户不在该房间中`
           }
         }
-      } else { //在成员列表中,直接删除
-        member.splice(member.indexOf(userId), 1);
+      } else { // 在成员列表中,直接删除
+        member.splice(member.indexOf(userId), 1)
       }
-      room.set('member', member);
+      room.set('member', member)
       let data = await room.save()
-      let query4 = new AV.Query('AudioRoom');
-      query4.equalTo('objectId', result.get('objectId'));
+      let query4 = new AV.Query('AudioRoom')
+      query4.equalTo('objectId', result.get('objectId'))
       let ret = await query4.first()
       let rest = await getRoomUserInfo(ret)
       socket.sockets.to(`room${roomId}`).emit('userLeaveRoom', {
         userList: rest
-      });
+      })
       ctx.body = {
         status: 200,
         data: {
@@ -1200,4 +1219,4 @@ router.post('/audio/userLeave',
     }
   })
 
-module.exports = router;
+module.exports = router
