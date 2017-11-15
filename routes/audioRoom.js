@@ -11,11 +11,11 @@ const logger = log4js.getLogger('router')
 
 router.prefix('/v1')
 
-router.get('/twoRoom',
+router.post('/twoRoom',
   jwt.verify,
   async(ctx, next) => {
-    let userId = ctx.query.userId
-    let data = ctx.query.data
+    let userId = ctx.request.body.userId
+    let data = ctx.request.body.data
     let sql = `select socketId from ConnectedUser where userId = "${userId}"`
     let socketId = await db.excute(sql)
     logger.debug(`socketId`, socket.sockets.connected[socketId[0].socketId])
