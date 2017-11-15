@@ -611,7 +611,7 @@ router.delete('/audio/blockList',
   async(ctx, next) => {
     try {
       let userId = ctx.request.body.userId
-      let roomId = = ctx.request.body.roomId
+      let roomId = ctx.request.body.roomId
       let ownerId = ctx.decode.userId
       console.log(`------> userId is ${userId}, roomId is ${roomId} ownerId is ${ownerId}`)
       let query = new AV.Query('AudioRoom')
