@@ -20,7 +20,7 @@ router.post('/twoRoom',
     let data = ctx.query.data
     let sql = `select socketId from ConnectedUser where userId = "${userId}"`
     let socketId = await db.excute(sql)
-    socket.sockets.connected(socketId).emit('phoneCall', data)
+    socket.sockets.connected[socketId].emit('phoneCall', data)
     ctx.body = {
       status: 200,
       data: {},
