@@ -13,6 +13,22 @@ const logger = log4js.getLogger('router')
 
 router.prefix('/v1')
 
+router.post('/twoRoom', 
+  jwt.verify,
+  async(ctx, next) => {
+    let userId = ctx.query.userId
+    let data = ctx.query.data
+    let sql = `select socketId from ConnectedUser where userId = "${userId}"`
+    let socketId = await db.excute(sql)
+    socket.sockets.connected(socketId).emit('phoneCall', data)
+    ctx.body = {
+      status: 200,
+      data: {},
+      msg: `success`
+    }
+  }
+)
+
 //mysql 大房间
 router.post('/bigRoom',
   jwt.verify,
@@ -101,6 +117,8 @@ router.delete('/bigRoom',
       let sql = `delete from BigRoom where id="${roomId}"`
       let ret = await db.excute(sql)
       if (ret) {
+        sql = `delete from UserBigRoom where roomId="${roomId}"`
+        ret = await db.excute(sql)
         return ctx.body = {
           status: 200,
           data: ret,
