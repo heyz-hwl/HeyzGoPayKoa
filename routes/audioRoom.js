@@ -13,7 +13,7 @@ const logger = log4js.getLogger('router')
 
 router.prefix('/v1')
 
-router.post('/twoRoom', 
+router.get('/twoRoom', 
   jwt.verify,
   async(ctx, next) => {
     let userId = ctx.query.userId
@@ -21,9 +21,9 @@ router.post('/twoRoom',
     let sql = `select socketId from ConnectedUser where userId = "${userId}"`
     let socketId = await db.excute(sql)
     socket.sockets.connected[socketId].emit('phoneCall', data)
-    ctx.body = {
+    return ctx.body = {
       status: 200,
-      data: {},
+      data: data,
       msg: `success`
     }
   }
