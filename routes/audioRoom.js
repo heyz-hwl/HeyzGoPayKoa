@@ -14,23 +14,32 @@ router.prefix('/v1')
 router.post('/twoRoom',
   jwt.verify,
   async(ctx, next) => {
-    let userId = ctx.request.body.userId
-    let data = ctx.request.body.data
-    let sql = `select socketId from ConnectedUser where userId = "${userId}"`
-    let socketId = await db.excute(sql)
-    logger.debug(`socketId`, socket.sockets.connected[socketId[0].socketId])
-    if (socket.sockets.connected[socketId[0].socketId]) {
-      socket.sockets.connected[socketId[0].socketId].emit('phoneCall', data)
-      return ctx.body = {
-        status: 200,
-        data: data,
-        msg: `success`
+    try {
+      let userId = ctx.request.body.userId
+      let data = ctx.request.body.data
+      let sql = `select socketId from ConnectedUser where userId = "${userId}"`
+      let socketId = await db.excute(sql)
+      logger.debug(`socketId`, socket.sockets.connected[socketId[0].socketId])
+      if (socket.sockets.connected[socketId[0].socketId]) {
+        socket.sockets.connected[socketId[0].socketId].emit('phoneCall', data)
+        return ctx.body = {
+          status: 200,
+          data: data,
+          msg: `success`
+        }
       }
-    }
-    ctx.body = {
-      status: 403,
-      data: {},
-      msg: `no socketId`
+      ctx.body = {
+        status: 403,
+        data: {},
+        msg: `no socketId`
+      }
+    } catch (err) {
+      logger.error(`two room err is`, err)
+      ctx.body = {
+        status: 403,
+        data: {},
+        msg: `two room err is ${err}`
+      }
     }
   }
 )
@@ -817,6 +826,9 @@ const getRoomUserInfo = (room) => {
           let query = new AV.Query('_User')
           query.equalTo('objectId', item)
           let user = await query.first()
+          if(!user){
+            reject(`user err`)
+          }
           resolve(UserInfo(user))
         }))
       })
@@ -865,6 +877,9 @@ const getUserInfo = (userIds) => {
           let query = new AV.Query('_User')
           query.equalTo('objectId', userId)
           let user = await query.first()
+          if(_.isUndefined(user)){
+            reject(`user err`)
+          }
           resolve(UserInfo(user))
         }))
       })
