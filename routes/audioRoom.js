@@ -610,12 +610,10 @@ router.delete('/audio/blockList',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let {
-        userId,
-        roomId
-      } = ctx.request.body
+      let userId = ctx.request.body.userId
+      let roomId = = ctx.request.body.roomId
       let ownerId = ctx.decode.userId
-      console.log(`------> userId is ${userId}, roomId is %${roomId} ownerId is ${ownerId}`)
+      console.log(`------> userId is ${userId}, roomId is ${roomId} ownerId is ${ownerId}`)
       let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId)
       let room = await query.first()
