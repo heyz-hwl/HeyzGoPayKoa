@@ -245,12 +245,17 @@ const changeSequence = (channelId) => {
             let promise = [];
             userList.forEach((user) => {
               promise.push(new Promise(async(resolve, reject) => {
-                let order_nub = user.order_nub - 1;
-                sql = `update Sequence set order_nub ="${order_nub}" where id="${user.id}"`;
-                await db.excute(sql)
+                try {
+                  let order_nub = user.order_nub - 1;
+                  sql = `update Sequence set order_nub ="${order_nub}" where id="${user.id}"`;
+                  let ret = await db.excute(sql)
+                  resolve(ret)
+                }catch(err){
+                  reject(err)
+                }
               }))
             })
-            await Promise.all(promise)
+            let r = await Promise.all(promise)
             let data = await getTop3Seq()
             logger.debug(`changeSequence socket`, data)
             socket.sockets.emit('changeSequence', {
