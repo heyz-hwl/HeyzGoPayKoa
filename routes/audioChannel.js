@@ -110,6 +110,7 @@ router.post('/audio/applySequence',
         logger.debug(`user`, user)
         logger.debug(`userId`, userId)        
         let inArray = user.some((item) => {
+          logger.debug(`item`, item.userId)
           return item.userId = userId
         })
         logger.debug(`inArray`, inArray)
