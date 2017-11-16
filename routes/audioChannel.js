@@ -223,7 +223,6 @@ const changeSequence = (channelId) => {
           }
         })
       } else {
-        console.log(`changeSequence success`)
         await setTimeout(async(channelId) => {
           let sql = `select * from Sequence where 1=1 order by order_nub limit 0,1`;
           let orderOneUser2 = await db.excute(sql)
@@ -235,7 +234,7 @@ const changeSequence = (channelId) => {
             console.log(`user${JSON.stringify(orderOneUser[0].userId)} out `)
             sql = `select * from Sequence where 1=1 order by order_nub`;
             let userList = await db.excute(sql)
-            if (!userList) {
+            if (_.isEmpty(userList)) {
               return socket.sockets.emit('changeSequence', {
                 data: {
                   userList: []
@@ -252,6 +251,7 @@ const changeSequence = (channelId) => {
             })
             await Promise.all(promise)
             let data = await getTop3Seq()
+            logger.debug(`changeSequence socket`, data)
             socket.sockets.emit('changeSequence', {
               data: {
                 userList: data
