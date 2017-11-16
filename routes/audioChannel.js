@@ -250,7 +250,7 @@ const changeSequence = (channelId) => {
                   sql = `update Sequence set order_nub ="${order_nub}" where id="${user.id}"`;
                   let ret = await db.excute(sql)
                   resolve(ret)
-                }catch(err){
+                } catch (err) {
                   reject(err)
                 }
               }))
@@ -271,16 +271,12 @@ const changeSequence = (channelId) => {
               }
             })
           } else {
-            changeSequence(channelId);
+            return
           }
         }, 31000)
       }
     } catch (err) {
-      ctx.body = {
-        status: -1,
-        data: {},
-        msg: `changeSequence err is ${err}`
-      }
+     reject(err)
     }
   })
 }
@@ -338,4 +334,10 @@ const getUserInfoList = (userList) => {
   })
 }
 
-module.exports = router;
+changeSequence(1).then((ret) => {
+  logger.debug(`changeSequence --->`, ret)
+}).catch((err) => {
+  logger.error(`changeSequence err --->`, err)
+})
+
+module.exports = router
