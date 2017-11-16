@@ -214,6 +214,7 @@ const changeSequence = (channelId) => {
     try {
       channelId = channelId || '1';
       let data = [];
+      logger.debug(`changeSequence start`)
       let sql = `select * from Sequence where 1=1 order by order_nub limit 0,1`;
       let orderOneUser = await db.excute(sql)
       if (_.isEmpty(orderOneUser)) {
