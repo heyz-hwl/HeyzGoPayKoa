@@ -142,7 +142,7 @@ router.post('/audio/applySequence',
   })
 
 //麦主主动下麦或者离开麦序
-router.get('/audio/changeSequence',
+router.get('/audio/leaveSequence',
   jwt.verify,
   async(ctx, next) => {
     try {
@@ -151,9 +151,16 @@ router.get('/audio/changeSequence',
       let order = await db.excute(sql)
       if (_.isEmpty(order)) {
         return ctx.body = {
-          status: -1,
+          status: 204,
           data: {},
           msg: `该用户不在麦序中`
+        }
+      }
+      if(order[0].order_nub === 1){
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `请等待`
         }
       }
       sql = `select * from Sequence where order_nub > "${order[0].order_nub}"`
