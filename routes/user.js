@@ -338,7 +338,7 @@ router.get('/user/follow/len',
       }))
       promise.push(new Promise(async(resolve, reject) => {
         try {
-          let query = user.followeeQuery();
+          let query = user.followerQuery();
           query.include('follower');
           let follower = await query.find();
           if (_.isEmpty(follower)) {
