@@ -103,6 +103,9 @@ router.post('/bigRoom/user',
       }
       let time = moment().format('YYYY-MM-DD HH:mm:ss')
       let userId = ctx.decode.userId
+      if(ctx.request.body.userId){
+        userId = ctx.request.body.userId
+      }
       let sql = `insert into UserBigRoom values(null,"${roomId}","${userId}","${time}")`
       let ret = await db.excute(sql)
       if (ret) {
@@ -606,6 +609,7 @@ router.post('/audio/blockList',
   }
 )
 
+//delete for iOS
 router.post('/audio/blockList/iOS',
   jwt.verify,
   async(ctx, next) => {

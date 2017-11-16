@@ -7,6 +7,8 @@ const middle = require('../lib/middle');
 const async = require('async');
 const socket = require('../lib/socket');
 const _ = require('lodash');
+const log4js = require('koa-log4')
+const logger = log4js.getLogger('router')
 
 router.prefix('/v1')
 
@@ -85,6 +87,7 @@ router.post('/audio/applySequence',
             order_nub: order_nub
           }
         }
+        logger.debug(`applySequence ret1`, ret)        
         socket.sockets.emit('applySequence', {
           data: ret
         });
@@ -118,6 +121,7 @@ router.post('/audio/applySequence',
             order_nub: order_nub
           }
         }
+        logger.debug(`applySequence ret2`, ret)
         socket.sockets.emit('applySequence', {
           data: ret
         });

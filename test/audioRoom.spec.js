@@ -18,11 +18,44 @@ describe('test audioRoom', async() => {
     token = await createToken()
   })
 
+  it('responds to create a big Room', (done) => {
+		api.post('/v1/bigRoom')
+			.send({
+        access_token: token,
+        title: `backEndTest`,
+        cover: `5a041363128fe10068a23847`,
+        icon: `5a041467a22b9d00629c854d`
+			})
+			.expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, ctx) => {
+        expect(ctx.body.msg).to.equal('success')
+				expect(ctx.body.status).to.equal(200)
+        done()
+      })
+  })
+  
+  it('responds to add a user to big room', (done) => {
+		api.post('/v1/bigRoom/user')
+			.send({
+        access_token: token,
+        roomId: 1
+			})
+			.expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, ctx) => {
+        expect(ctx.body.msg).to.equal('success')
+				expect(ctx.body.status).to.equal(200)
+        done()
+      })
+	})
+
   it('responds to user join in room', (done) => {
     api.post('/v1/audio/user')
       .send({
         access_token: token,
-        roomId: `59f8435dee920a00457e4fb0`
+        roomId: `59f8435dee920a00457e4fb0`,
+        userId: `59f1b01a67f35600445106eb`
       })
       .expect('Content-Type', /json/)
       .expect(200)
@@ -32,6 +65,51 @@ describe('test audioRoom', async() => {
         done()
       })
   })
+
+  it('responds to delete a user from big room', (done) => {
+		api.delete('/v1/bigRoom/user')
+			.send({
+        access_token: token,
+        roomId: 1,
+        userId: `59f1b01a67f35600445106eb`
+			})
+			.expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, ctx) => {
+        expect(ctx.body.msg).to.equal('success')
+				expect(ctx.body.status).to.equal(200)
+        done()
+      })
+  })
+  
+  it('responds to delete a big room', (done) => {
+		api.delete('/v1/bigRoom')
+			.send({
+        access_token: token,
+        roomId: 1
+			})
+			.expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, ctx) => {
+        expect(ctx.body.msg).to.equal('success')
+				expect(ctx.body.status).to.equal(200)
+        done()
+      })
+  })
+  
+  it('responds to get big Room', (done) => {
+		api.get('/v1/bigRoom')
+			.query({
+        access_token: token
+			})
+			.expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, ctx) => {
+        expect(ctx.body.msg).to.equal('success')
+				expect(ctx.body.status).to.equal(200)
+        done()
+      })
+	})
 
   it('responds to get background pic url', (done) => {
     api.get('/v1/audio/bgPic')
@@ -65,7 +143,7 @@ describe('test audioRoom', async() => {
     api.get('/v1/audio/userInfo')
       .query({
         access_token: token,
-        roomId: '59f8435dee920a00457e4fb0'
+        roomId: '5a0c1c97ee920a003a5d91c6'
       })
       .expect('Content-Type', /json/)
       .expect(200)
@@ -80,7 +158,7 @@ describe('test audioRoom', async() => {
     api.post('/v1/audio/userLeave')
       .send({
         access_token: token,
-        roomId: `59f8435dee920a00457e4fb0`
+        roomId: `5a0c1c97ee920a003a5d91c6`
       })
       .expect('Content-Type', /json/)
       .expect(200)
