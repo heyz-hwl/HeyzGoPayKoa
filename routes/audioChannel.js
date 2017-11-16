@@ -20,6 +20,14 @@ router.get('/audio/userSequence',
       let userId = ctx.decode.userId;
       let sql = `select * from Sequence where userId="${userId}"`
       let result = await db.excute(sql)
+      logger.debug(`result`, result)
+      if (_.isEmpty(result)) {
+        return ctx.body = {
+          status: -1,
+          data: {},
+          msg: `不在麦序中`
+        }
+      }
       ctx.body = {
         status: 200,
         data: result,
@@ -87,7 +95,7 @@ router.post('/audio/applySequence',
             order_nub: order_nub
           }
         }
-        logger.debug(`applySequence ret1`, ret)        
+        logger.debug(`applySequence ret1`, ret)
         socket.sockets.emit('applySequence', {
           data: ret
         });
@@ -156,7 +164,8 @@ router.get('/audio/leaveSequence',
           msg: `该用户不在麦序中`
         }
       }
-      if(order[0].order_nub === 1){
+      logger.debug(`order[0].order_nub`, order[0].order_nub)
+      if (order[0].order_nub == 1) {
         return ctx.body = {
           status: 403,
           data: {},
