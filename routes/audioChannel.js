@@ -107,6 +107,8 @@ router.post('/audio/applySequence',
         changeSequence(channelId);
       } else {
         order_nub = Number(user[0].order_nub) + 1; //_.get(user[0], 'order_nub', 1)
+        logger.debug(`user`, user)
+        logger.debug(`userId`, userId)        
         let inArray = await user.some((item) => {
           return item.userId = userId
         })
