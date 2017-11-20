@@ -1101,7 +1101,7 @@ router.get('/audio/rooms',
   async(ctx, next) => {
     try {
       let promise = []
-      let limit = ctx.query.limit ? Number(ctx.query.limit) : 5
+      let limit = ctx.query.limit ? Number(ctx.query.limit) : 10
       let skip = ctx.query.skip ? Number(ctx.query.skip) : 0
       let query = new AV.Query('AudioRoom')
       if (!_.isUndefined(ctx.query.roomId)) {
@@ -1122,7 +1122,7 @@ router.get('/audio/rooms',
               roomId: room.get('objectId'),
               title: room.get('title'),
               roomNub: room.get('roomNub'),
-              number: room.get('member').length + 1,
+              // number: room.get('member').length + 1,
               imageUrl: room.get('background').get('url'),
               icon: room.get('icon').get('url'),
               user: userInfo
