@@ -1122,7 +1122,7 @@ router.get('/audio/rooms',
               roomId: room.get('objectId'),
               title: room.get('title'),
               roomNub: room.get('roomNub'),
-              number: 1,
+              number: room.get('member').length + 1,
               imageUrl: room.get('background').get('url'),
               icon: room.get('icon').get('url'),
               user: userInfo
