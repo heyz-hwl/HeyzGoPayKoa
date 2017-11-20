@@ -323,14 +323,15 @@ router.get('/user/follow/len',
       let promise = [];
       promise.push(new Promise(async(resolve, reject) => {
         try {
-          let query = user.followeeQuery();
+          let query = new AV.Query('_Followee')
+          query.equalTo('user', user)
           query.include('followee');
           let followees = await query.find();
           if (_.isEmpty(followees)) {
             resolve(0);
           }
           resolve({
-            'followeesLen': followees.length
+            'followeesLen': followees.length    //关注的人
           });
         } catch (err) {
           reject(`followee query err is ${err}`)
@@ -338,14 +339,15 @@ router.get('/user/follow/len',
       }))
       promise.push(new Promise(async(resolve, reject) => {
         try {
-          let query = user.followerQuery();
+          let query = new AV.Query('_Follower')
+          query.equalTo('user', user)
           query.include('follower');
-          let follower = await query.find();
-          if (_.isEmpty(follower)) {
+          let followers = await query.find();
+          if (_.isEmpty(followers)) {
             resolve(0);
           }
           resolve({
-            'followersLen': follower.length
+            'followersLen': followers.length    //粉丝
           });
         } catch (err) {
           reject(`follower query err is ${err}`)
