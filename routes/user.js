@@ -398,8 +398,7 @@ const getFollowee = (userId) => {
     let start = new Date();
     let user = AV.Object.createWithoutData('_User', userId);
     let data = {}; //返回数据
-    var query = new AV.Query('_Followee')
-    query.equalTo('user', user)
+    let query = user.followeeQuery();
     query.include('followee');
     query.find().then(function (followees) {
       //关注的用户列表 followees
@@ -420,8 +419,7 @@ router.get('/user/follower',
       let userId = ctx.decode.userId; //获取用户ID 
       let user = AV.Object.createWithoutData('_User', userId);
       let data = {}; //返回数据
-      let query = new AV.Query('_Follower')
-      query.equalTo('user', user)
+      let query = user.followerQuery();
       query.include('follower');
       let followers = await query.find()
       let list = middle.followList(followers); //粉丝列表 
