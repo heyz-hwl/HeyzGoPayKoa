@@ -61,7 +61,7 @@ router.get('/sign/status',
 
 //累计签到到特殊天数,增长积分
 const gradeAdd = {
-  1: 100,
+  1: 60,
   3: 300,
   7: 400,
   14: 500,
