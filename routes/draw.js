@@ -385,9 +385,13 @@ router.put('/draw/selectSkin',
 router.get('/draw/willDelivery',
   async(ctx, next) => {
     try {
+      let limit = ctx.query.limit ? Number(ctx.query.limit) : 10
+      let skip = ctx.query.skip ? Number(ctx.query.skip) : 0
       let query = new AV.Query('DrawRecord');
       query.equalTo('isDelivery', false);
       query.include('skin');
+      query.limit(limit)
+      query.skip(skip)
       query.addDescending('createAt');
       let result = await query.find()
       ctx.body = {
