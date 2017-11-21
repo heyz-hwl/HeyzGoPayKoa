@@ -228,7 +228,7 @@ router.get('/user',
   async(ctx, next) => {
     try {
       let userId = ctx.decode.userId //获取用户ID
-      if(ctx.query.userId){
+      if (ctx.query.userId) {
         userId = ctx.query.userId
       }
       let query = new AV.Query(`_User`)
@@ -331,7 +331,7 @@ router.get('/user/follow/len',
             resolve(0);
           }
           resolve({
-            'followeesLen': followees.length    //关注的人
+            'followeesLen': followees.length //关注的人
           });
         } catch (err) {
           reject(`followee query err is ${err}`)
@@ -347,7 +347,7 @@ router.get('/user/follow/len',
             resolve(0);
           }
           resolve({
-            'followersLen': followers.length    //粉丝
+            'followersLen': followers.length //粉丝
           });
         } catch (err) {
           reject(`follower query err is ${err}`)
@@ -394,19 +394,18 @@ router.get('/user/followee',
   })
 
 const getFollowee = (userId) => {
-  return new Promise((resolve, reject) => {
-    let start = new Date();
-    let user = AV.Object.createWithoutData('_User', userId);
-    let data = {}; //返回数据
-    let query = user.followeeQuery();
-    query.include('followee');
-    query.find().then(function (followees) {
+  return new Promise(async(resolve, reject) => {
+    try {
+      let user = AV.Object.createWithoutData('_User', userId);
+      let query = user.followeeQuery();
+      query.include('followee');
+      let followees = await query.find()
       //关注的用户列表 followees
       let list = middle.followList(followees);
       resolve(list)
-    }).catch((err) => {
-      reject('getFollowee err--> ' +err)
-    });
+    } catch (err) {
+      reject('getFollowee err--> ' + err)
+    }
   })
 }
 
@@ -417,13 +416,7 @@ router.get('/user/follower',
     try {
       let start = new Date();
       let userId = ctx.decode.userId; //获取用户ID 
-      let user = AV.Object.createWithoutData('_User', userId);
-      let data = {}; //返回数据
-      let query = user.followerQuery();
-      query.include('follower');
-      let followers = await query.find()
-      let list = middle.followList(followers); //粉丝列表 
-      console.log('list-->' + JSON.stringify(list));
+      let list = await getFollower(userId)
       ctx.body = {
         status: 200,
         data: list,
@@ -433,10 +426,31 @@ router.get('/user/follower',
       ctx.body = {
         status: -1,
         data: {},
-        msg:`get follower err--> ${err}`
+        msg: `get follower err--> ${err}`
       }
     }
   })
+
+const getFollower = (userId) => {
+  return new Promise(async(resolve, reject) => {
+    try {
+      let start = new Date();
+      let user = AV.Object.createWithoutData('_User', userId);
+      let data = {}; //返回数据
+      let query = user.followerQuery()
+      // query.equalTo('user', user)
+      query.include('follower');
+      let followers = await query.find()
+      // let followers = f1
+      //关注的用户列表 followees
+      let list = middle.followList(followers);
+      resolve(list)
+    } catch (err) {
+      reject('getFollowee err--> ' + err)
+    }
+  })
+}
+
 
 //注册用户钱包
 router.post('/user/wallet',
