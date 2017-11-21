@@ -332,21 +332,22 @@ router.put('/draw/selectSkin',
         title: `请添加客服微信确认信息`,
         wx: `Heyz_Yuyi`,
         msg: `添加好友,获取礼品`
-      };
-      let drawRecordId = data.drawRecordId;
-      let skinName = data.skinName;
-      let skinId = data.skinId;
-      let prizeWinnerID = data.prizeWinnerID;
-      let isWechat = data.isWechat ? data.isWechat : true;
-      if (!prizeWinnerID || !drawRecordId || !skinName || !skinId) {
+      }
+      let drawRecordId = data.drawRecordId
+      let skinName = data.skinName
+      let skinId = data.skinId
+      let prizeWinnerID = data.prizeWinnerID
+      let isWechat = data.isWechat ? data.isWechat : true
+      let isIOS = data.isIOS ? data.isIOS : true
+      if (!prizeWinnerID || !drawRecordId || !skinName || !skinId || !isIOS) {
         return ctx.body = {
           status: 403,
           data: {},
           msg: `Parameter missing!`
         }
       }
-      let query = new AV.Query('DrawRecord');
-      query.equalTo('objectId', drawRecordId);
+      let query = new AV.Query('DrawRecord')
+      query.equalTo('objectId', drawRecordId)
       let Record = await query.first()
       if (Record.get('isSelected')) {
         return ctx.body = {
@@ -355,14 +356,15 @@ router.put('/draw/selectSkin',
           msg: `已经选择了皮肤,如需修改请联系客服`
         }
       }
-      let prize = Record.get('prize');
-      let drawRecord = AV.Object.createWithoutData('DrawRecord', drawRecordId);
-      let skin = AV.Object.createWithoutData('_File', skinId);
-      drawRecord.set('skin', skin);
-      drawRecord.set('prize', skinName);
-      drawRecord.set('prizeWinnerID', prizeWinnerID);
-      drawRecord.set('isWechat', isWechat);
-      drawRecord.set('isSelected', true);
+      let prize = Record.get('prize')
+      let drawRecord = AV.Object.createWithoutData('DrawRecord', drawRecordId)
+      let skin = AV.Object.createWithoutData('_File', skinId)
+      drawRecord.set('skin', skin)
+      drawRecord.set('prize', skinName)
+      drawRecord.set('prizeWinnerID', prizeWinnerID)
+      drawRecord.set('isWechat', isWechat)
+      drawRecord.set('isSelected', true)
+      drawRecord.set('isIOS', isIOS)
       await drawRecord.save()
       ctx.body = {
         status: 200,
