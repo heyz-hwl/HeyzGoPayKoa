@@ -1015,7 +1015,7 @@ router.post('/audio/room',
       let query1 = new AV.Query('_User')
       query1.equalTo('objectId', owner)
       let user = await query1.first()
-      if (user.get('level') < 6) {
+      if (user.get('level') < 1) {
         return ctx.body = {
           status: 403,
           data: {},
