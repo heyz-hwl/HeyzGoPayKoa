@@ -380,7 +380,7 @@ router.get('/followee',
   async(ctx, next) => {
     try {
       let userId = ctx.decode.userId //获取用户ID 
-      let limit = ctx.query.limit || 5
+      let limit = ctx.query.limit || 10
       let skip = ctx.query.skip || 0
       let list = await getFollowList(userId, limit, skip, 1)
       ctx.body = {
