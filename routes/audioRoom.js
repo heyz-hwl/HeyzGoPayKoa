@@ -16,22 +16,34 @@ router.post('/twoRoom',
   async(ctx, next) => {
     try {
       let userId = ctx.request.body.userId
-      let data = ctx.request.body.data
+      let roomId = ctx.request.body.data
       let sql = `select socketId from ConnectedUser where userId = "${userId}"`
       let socketId = await db.excute(sql)
       logger.debug(`socketId`, socket.sockets.connected[socketId[0].socketId])
       if (socket.sockets.connected[socketId[0].socketId]) {
-        socket.sockets.connected[socketId[0].socketId].emit('phoneCall', data)
+        socket.sockets.connected[socketId[0].socketId].emit('phoneCall', roomId)
         return ctx.body = {
           status: 200,
-          data: data,
+          data: roomId,
           msg: `success`
         }
       }
+      AV.Push.send({
+        channels: [`${userId}`],
+        data: {
+          alert: '找你语音啦!!',
+          type: 1101,
+          data: {
+            userId: userId,
+            roomId: roomId,
+            chatType: 1
+          }
+        }
+      })
       ctx.body = {
         status: 403,
         data: {},
-        msg: `no socketId`
+        msg: `no socketId or off-line`
       }
     } catch (err) {
       logger.error(`two room err is`, err)
