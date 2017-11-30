@@ -7,6 +7,8 @@ const util = require('../lib/util');
 const config = require('../lib/config');
 const middle = require('../lib/middle');
 const _ = require('lodash');
+const log4js = require('koa-log4')
+const logger = log4js.getLogger('debug')
 
 router.prefix('/v1')
 
@@ -161,6 +163,22 @@ const chattingFriend = async(userId) => {
       resolve(result);
     } catch (err) {
       reject(`chattingFriend err is ${err}`)
+    }
+  })
+}
+
+const getFollowee = (userId) => {
+  return new Promise(async(resolve, reject) => {
+    try {
+      let user = AV.Object.createWithoutData('_User', userId)
+      let query = user.followeeQuery()
+      query.include('followee')
+      let followees = await query.find()
+      //关注的用户列表 followees
+      let list = middle.followList(followees)
+      resolve(list)
+    } catch (err) {
+      reject('getFollowee err--> ' + err)
     }
   })
 }
@@ -377,8 +395,10 @@ router.get('/user/followee',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let userId = ctx.decode.userId; //获取用户ID 
-      let list = await getFollowee(userId)
+      let userId = ctx.decode.userId //获取用户ID 
+      let limit = ctx.query.limit || 5
+      let skip = ctx.query.skip || 0
+      let list = await getFollowList(userId, limit, skip, 1)
       ctx.body = {
         status: 200,
         data: list,
@@ -393,22 +413,6 @@ router.get('/user/followee',
     }
   })
 
-const getFollowee = (userId) => {
-  return new Promise(async(resolve, reject) => {
-    try {
-      let user = AV.Object.createWithoutData('_User', userId);
-      let query = user.followeeQuery();
-      query.include('followee');
-      let followees = await query.find()
-      //关注的用户列表 followees
-      let list = middle.followList(followees);
-      resolve(list)
-    } catch (err) {
-      reject('getFollowee err--> ' + err)
-    }
-  })
-}
-
 //查询我的粉丝列表
 router.get('/user/follower',
   jwt.verify,
@@ -416,7 +420,9 @@ router.get('/user/follower',
     try {
       let start = new Date();
       let userId = ctx.decode.userId; //获取用户ID 
-      let list = await getFollower(userId)
+      let limit = ctx.query.limit || 10
+      let skip = ctx.query.skip || 0
+      let list = await getFollowList(userId, limit, skip, 0)
       ctx.body = {
         status: 200,
         data: list,
@@ -431,26 +437,72 @@ router.get('/user/follower',
     }
   })
 
-const getFollower = (userId) => {
+//查询粉丝和关注的人是否互相关注
+//type: 0->follower粉丝; 1->followee关注
+const getFollowList = (userId, limit, skip, type) => {
   return new Promise(async(resolve, reject) => {
     try {
-      let start = new Date();
-      let user = AV.Object.createWithoutData('_User', userId);
-      let data = {}; //返回数据
-      let query = user.followerQuery()
-      // query.equalTo('user', user)
-      query.include('follower');
-      let followers = await query.find()
-      // let followers = f1
-      //关注的用户列表 followees
-      let list = middle.followList(followers);
-      resolve(list)
+      let promise = []
+      let user = AV.Object.createWithoutData('_User', userId)
+      if (type) { //followee
+        let query = new AV.Query('_Followee')
+        query.equalTo('user', user)
+        query.include('followee')
+        query.addDescending('createdAt')
+        query.limit(limit)
+        query.skip(skip)
+        let userList = await query.find() //关注列表
+        userList.forEach((user, index) => {
+          promise.push(new Promise(async(resolve, reject) => {
+            try {
+              user = util.getUserInfo(user.get('followee'))     
+              let userObj = AV.Object.createWithoutData('_User', user.userId)
+              let followeeObj = AV.Object.createWithoutData('_User', userId)
+              let query = new AV.Query('_Followee')
+              query.equalTo('user', userObj)
+              query.equalTo('followee', followeeObj)
+              let mutual = await query.first()
+              user.status = _.isUndefined(mutual) ? 0 : 1
+              resolve(user)
+            } catch (err) {
+              reject(`followeeQuery err --->`, err)
+            }
+          }))
+        })
+      } else {
+        let query = new AV.Query('_Follower')
+        query.equalTo('user', user)
+        query.include('follower')
+        query.limit(limit)
+        query.skip(skip)
+        query.addDescending('createdAt')     
+        let userList = await query.find() //粉丝列表
+        userList.forEach((user, index) => {
+          promise.push(new Promise(async(resolve, reject) => {
+            try {
+              user = util.getUserInfo(user.get('follower'))
+              let userObj = AV.Object.createWithoutData('_User', user.userId)
+              let followerObj = AV.Object.createWithoutData('_User', userId)
+              let query = new AV.Query('_Follower')
+              query.equalTo('user', userObj)
+              query.equalTo('follower', followerObj)
+              let mutual = await query.first()
+              user.status = _.isUndefined(mutual) ? 0 : 1
+              resolve(user)
+            } catch (err) {
+              reject(`followerQuery err --->`, err)
+            }
+          }))
+        })
+      }
+      let result = await Promise.all(promise)
+      resolve(result)
     } catch (err) {
-      reject('getFollowee err--> ' + err)
+      logger.error(`getFollowList err--->`, err)
+      reject(`getFollowList err--->${err}`)
     }
   })
 }
-
 
 //注册用户钱包
 router.post('/user/wallet',

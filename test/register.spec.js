@@ -33,7 +33,7 @@ describe('test CompeteRegister', async() => {
       })
   })
 
-  it.only('response to get one week register', (done) => {
+  it('response to get one week register', (done) => {
     api.get('/v1/register')
       .query({
         time: `1510568028`
