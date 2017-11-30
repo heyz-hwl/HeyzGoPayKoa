@@ -167,22 +167,6 @@ const chattingFriend = async(userId) => {
   })
 }
 
-const getFollowee = (userId) => {
-  return new Promise(async(resolve, reject) => {
-    try {
-      let user = AV.Object.createWithoutData('_User', userId)
-      let query = user.followeeQuery()
-      query.include('followee')
-      let followees = await query.find()
-      //关注的用户列表 followees
-      let list = middle.followList(followees)
-      resolve(list)
-    } catch (err) {
-      reject('getFollowee err--> ' + err)
-    }
-  })
-}
-
 const userRoom = (user) => {
   return new Promise(async(resolve, reject) => {
     let query1 = new AV.Query('AudioRoom');
@@ -391,7 +375,7 @@ router.get('/user/follow/len',
   });
 
 //查询我关注的用户列表
-router.get('/user/followee',
+router.get('/followee',
   jwt.verify,
   async(ctx, next) => {
     try {
@@ -414,7 +398,7 @@ router.get('/user/followee',
   })
 
 //查询我的粉丝列表
-router.get('/user/follower',
+router.get('/follower',
   jwt.verify,
   async(ctx, next) => {
     try {
@@ -439,6 +423,7 @@ router.get('/user/follower',
 
 //查询粉丝和关注的人是否互相关注
 //type: 0->follower粉丝; 1->followee关注
+//status: 0->单方向; 1->互相关注
 const getFollowList = (userId, limit, skip, type) => {
   return new Promise(async(resolve, reject) => {
     try {
@@ -455,7 +440,7 @@ const getFollowList = (userId, limit, skip, type) => {
         userList.forEach((user, index) => {
           promise.push(new Promise(async(resolve, reject) => {
             try {
-              user = util.getUserInfo(user.get('followee'))     
+              user = util.getUserInfo(user.get('followee'))
               let userObj = AV.Object.createWithoutData('_User', user.userId)
               let followeeObj = AV.Object.createWithoutData('_User', userId)
               let query = new AV.Query('_Followee')
@@ -475,7 +460,7 @@ const getFollowList = (userId, limit, skip, type) => {
         query.include('follower')
         query.limit(limit)
         query.skip(skip)
-        query.addDescending('createdAt')     
+        query.addDescending('createdAt')
         let userList = await query.find() //粉丝列表
         userList.forEach((user, index) => {
           promise.push(new Promise(async(resolve, reject) => {
@@ -577,5 +562,84 @@ router.get('/user/consume',
       });
     });
   });
+
+//查询我关注的用户列表
+router.get('/user/followee',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let userId = ctx.decode.userId; //获取用户ID 
+      let list = await getFollowee(userId)
+      ctx.body = {
+        status: 200,
+        data: list,
+        msg: 'success'
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `followee err is ${err}`
+      }
+    }
+  })
+
+const getFollowee = (userId) => {
+  return new Promise(async(resolve, reject) => {
+    try {
+      let user = AV.Object.createWithoutData('_User', userId);
+      let query = user.followeeQuery();
+      query.include('followee');
+      let followees = await query.find()
+      //关注的用户列表 followees
+      let list = middle.followList(followees);
+      resolve(list)
+    } catch (err) {
+      reject('getFollowee err--> ' + err)
+    }
+  })
+}
+
+//查询我的粉丝列表
+router.get('/user/follower',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let start = new Date();
+      let userId = ctx.decode.userId; //获取用户ID 
+      let list = await getFollower(userId)
+      ctx.body = {
+        status: 200,
+        data: list,
+        msg: 'success'
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `get follower err--> ${err}`
+      }
+    }
+  })
+
+const getFollower = (userId) => {
+  return new Promise(async(resolve, reject) => {
+    try {
+      let start = new Date();
+      let user = AV.Object.createWithoutData('_User', userId);
+      let data = {}; //返回数据
+      let query = user.followerQuery()
+      // query.equalTo('user', user)
+      query.include('follower');
+      let followers = await query.find()
+      // let followers = f1
+      //关注的用户列表 followees
+      let list = middle.followList(followers);
+      resolve(list)
+    } catch (err) {
+      reject('getFollowee err--> ' + err)
+    }
+  })
+}
 
 module.exports = router;
