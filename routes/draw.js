@@ -5,6 +5,7 @@ const async = require('async');
 const _ = require('lodash');
 const socket = require('../lib/socket');
 const util = require('../lib/util');
+const moment = require('moment');
 const {
   upgrade
 } = require('../lib/func');
@@ -385,15 +386,28 @@ router.put('/draw/selectSkin',
 router.get('/draw/willDelivery',
   async(ctx, next) => {
     try {
+      let time = moment().format('YYYY-MM-DD HH:MM:SS')
       let limit = ctx.query.limit ? Number(ctx.query.limit) : 10
       let skip = ctx.query.skip ? Number(ctx.query.skip) : 0
-      let query = new AV.Query('DrawRecord');
-      query.equalTo('isDelivery', false);
-      query.include('skin');
+      let isIOS = ctx.query.isIOS === '0' ? false : true
+      let addFriend = ctx.query.addFriend === '0' ? false : true
+      let timeType = ctx.query.timeType
+      let query = new AV.Query('DrawRecord')
+      query.equalTo('isDelivery', true)
+      query.equalTo('isIOS', isIOS)
+      query.equalTo('addFriend', addFriend)
       query.limit(limit)
       query.skip(skip)
-      query.addDescending('createAt');
-      let result = await query.find()
+      query.addDescending('createdAt')
+      query.lessThan('createdAt', new Date(time))
+      let queryTime = new AV.Query('DrawRecord')
+      switch (timeType) {
+        case 1: query.greaterThanOrEqualTo('createdAt', moment().subtract(1, 'day')); break
+        case 2: query.greaterThanOrEqualTo('createdAt', moment().subtract(Number(moment().day()), 'day')); break
+        case 3: query.greaterThanOrEqualTo('createdAt', moment().subtract(Number(moment().date()), 'day')); break
+      }
+      let queryAnd = AV.Query.and(query, queryTime)
+      let result = await queryAnd.find()
       ctx.body = {
         status: 200,
         data: result,
@@ -403,7 +417,7 @@ router.get('/draw/willDelivery',
       ctx.body = {
         status: -1,
         data: {},
-        msg: `err is ${err}`
+        msg: `get willDelivery err is ${err}`
       }
     }
   })
