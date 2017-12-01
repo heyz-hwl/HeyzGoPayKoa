@@ -393,7 +393,7 @@ router.get('/draw/willDelivery',
       let addFriend = ctx.query.addFriend === '0' ? false : true
       let timeType = ctx.query.timeType
       let query = new AV.Query('DrawRecord')
-      query.equalTo('isDelivery', true)
+      query.equalTo('isDelivery', false)
       query.equalTo('isIOS', isIOS)
       query.equalTo('addFriend', addFriend)
       query.limit(limit)
