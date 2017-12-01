@@ -22,11 +22,6 @@ router.post('/twoRoom',
       logger.debug(`socketId`, socket.sockets.connected[socketId[0].socketId])
       if (socket.sockets.connected[socketId[0].socketId]) {
         socket.sockets.connected[socketId[0].socketId].emit('phoneCall', roomId)
-        return ctx.body = {
-          status: 200,
-          data: roomId,
-          msg: `success`
-        }
       }
       AV.Push.send({
         channels: [`${userId}`],
@@ -40,10 +35,10 @@ router.post('/twoRoom',
           }
         }
       })
-      ctx.body = {
-        status: 403,
-        data: {},
-        msg: `no socketId or off-line`
+      return ctx.body = {
+        status: 200,
+        data: roomId,
+        msg: `success`
       }
     } catch (err) {
       logger.error(`two room err is`, err)
