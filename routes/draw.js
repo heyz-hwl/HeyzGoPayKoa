@@ -381,33 +381,48 @@ router.put('/draw/selectSkin',
     }
   })
 
-
 //查看未发货的获奖记录
 router.get('/draw/willDelivery',
   async(ctx, next) => {
     try {
+      let result = []
       let time = moment().format('YYYY-MM-DD HH:MM:SS')
       let limit = ctx.query.limit ? Number(ctx.query.limit) : 10
       let skip = ctx.query.skip ? Number(ctx.query.skip) : 0
-      let isIOS = ctx.query.isIOS === '0' ? false : true
-      let addFriend = ctx.query.addFriend === '0' ? false : true
+      let isIOS = util.isBoolean(ctx.query.isIOS)
+      let addFriend =util.isBoolean(ctx.query.addFriend)
+      console.log(`isIOS -> ${isIOS} addFriend -> ${addFriend}`)
       let timeType = ctx.query.timeType
       let query = new AV.Query('DrawRecord')
       query.equalTo('isDelivery', false)
-      query.equalTo('isIOS', isIOS)
-      query.equalTo('addFriend', addFriend)
       query.limit(limit)
       query.skip(skip)
       query.addDescending('createdAt')
       query.lessThan('createdAt', new Date(time))
-      let queryTime = new AV.Query('DrawRecord')
-      switch (timeType) {
-        case 1: query.greaterThanOrEqualTo('createdAt', moment().subtract(1, 'day')); break
-        case 2: query.greaterThanOrEqualTo('createdAt', moment().subtract(Number(moment().day()), 'day')); break
-        case 3: query.greaterThanOrEqualTo('createdAt', moment().subtract(Number(moment().date()), 'day')); break
+      if (isIOS) {
+        query.equalTo('isIOS', isIOS)
       }
-      let queryAnd = AV.Query.and(query, queryTime)
-      let result = await queryAnd.find()
+      if (addFriend) {
+        query.equalTo('addFriend', addFriend)
+      }
+      if (timeType) {
+        let queryTime = new AV.Query('DrawRecord')
+        switch (timeType) {
+          case 1:
+            query.greaterThanOrEqualTo('createdAt', moment().subtract(1, 'day'));
+            break
+          case 2:
+            query.greaterThanOrEqualTo('createdAt', moment().subtract(Number(moment().day()), 'day'));
+            break
+          case 3:
+            query.greaterThanOrEqualTo('createdAt', moment().subtract(Number(moment().date()), 'day'));
+            break
+        }
+        let queryAnd = AV.Query.and(query, queryTime)
+        result = await queryAnd.find()
+      } else {
+        result = await query.find()
+      }
       ctx.body = {
         status: 200,
         data: result,
