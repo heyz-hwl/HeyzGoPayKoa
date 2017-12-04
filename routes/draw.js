@@ -387,16 +387,12 @@ router.put('/draw/selectSkin',
 router.get('/draw/willDelivery',
   async(ctx, next) => {
     try {
-      let limit = ctx.query.limit ? Number(ctx.query.limit) : 10
-      let skip = ctx.query.skip ? Number(ctx.query.skip) : 0
       let isIOS = util.isBoolean(ctx.query.isIOS)
       let addFriend = util.isBoolean(ctx.query.addFriend)
       let timeType = ctx.query.timeType
       let promise = [],
         result = []
       let query = new AV.Query('DrawRecord')
-      query.limit(limit)
-      query.skip(skip)
       query.equalTo('isDelivery', false)
       query.addDescending('createdAt')
       query.lessThan('createdAt', new Date())
@@ -420,8 +416,8 @@ router.get('/draw/willDelivery',
             break
         }
         let queryAnd = AV.Query.and(query, queryTime)
+        queryAnd.addDescending('createdAt')
         result = await queryAnd.find()
-        console.log(`queryAnd is ${JSON.stringify(queryAnd)}`)
       } else {
         result = await query.find()
       }
@@ -431,6 +427,9 @@ router.get('/draw/willDelivery',
             let query = new AV.Query('_User')
             query.equalTo('objectId', item.get('userId'))
             let user = await query.first()
+            if(_.isUndefined(user)){
+              logger.error(item.get('userId'))
+            }
             item.set('nickName', user.get('nickName'))
             let time = moment(new Date(item.get('createdAt'))).format('YYYY-MM-DD HH:mm:ss')
             item.set('time', time)
