@@ -6,6 +6,8 @@ const _ = require('lodash');
 const socket = require('../lib/socket');
 const util = require('../lib/util');
 const moment = require('moment');
+const log4js = require('koa-log4')
+const logger = log4js.getLogger('router')
 const {
   upgrade
 } = require('../lib/func');
@@ -390,9 +392,9 @@ router.get('/draw/willDelivery',
       let limit = ctx.query.limit ? Number(ctx.query.limit) : 10
       let skip = ctx.query.skip ? Number(ctx.query.skip) : 0
       let isIOS = util.isBoolean(ctx.query.isIOS)
-      let addFriend =util.isBoolean(ctx.query.addFriend)
-      console.log(`isIOS -> ${isIOS} addFriend -> ${addFriend}`)
+      let addFriend = util.isBoolean(ctx.query.addFriend)
       let timeType = ctx.query.timeType
+      let promise = []
       let query = new AV.Query('DrawRecord')
       query.equalTo('isDelivery', false)
       query.limit(limit)
@@ -423,9 +425,26 @@ router.get('/draw/willDelivery',
       } else {
         result = await query.find()
       }
+      await result.forEach(async(item, index) => {
+        promise.push(new Promise(async(resolve, reject) => {
+          try {
+            let query = new AV.Query('_User')
+            query.equalTo('objectId', item.get('userId'))
+            let user = await query.first()
+            item.set('nickName', user.get('nickName'))
+            let time = moment(new Date(item.get('createdAt'))).format('YYYY-MM-DD HH:mm:ss')
+            item.set('time', time)
+            resolve(item)
+          } catch (err) {
+            reject(`result.forEach err-> ${err}`)
+          }
+        }))
+      })
+      logger.error(`promise err is `, promise)
+      let ret = await Promise.all(promise)
       ctx.body = {
         status: 200,
-        data: result,
+        data: ret,
         msg: `success`
       }
     } catch (err) {
@@ -442,6 +461,7 @@ router.post('/draw/delivery', async(ctx, next) => {
   try {
     let drawRecordId = ctx.request.body.drawRecordId
     let status = ctx.request.body.status
+    let wechat = ctx.query.wechat
     if (!drawRecordId) {
       return ctx.body = {
         status: -1,
@@ -461,9 +481,14 @@ router.post('/draw/delivery', async(ctx, next) => {
     }
     let drawRecord = AV.Object.createWithoutData('DrawRecord', drawRecordId);
     switch (status) {
-      case 1: drawRecord.set('addFriend', true); break
-      case 2: drawRecord.set('isDelivery', true); break
-      default: return
+      case 1:
+        drawRecord.set('addFriend', true);
+        break
+      case 2:
+        drawRecord.set('isDelivery', true);
+        break
+      default:
+        return
     }
     let result = await drawRecord.save()
     ctx.body = {
@@ -477,6 +502,19 @@ router.post('/draw/delivery', async(ctx, next) => {
       data: {},
       msg: `err is ${err}`
     }
+  }
+})
+
+router.post('/draw/wechat', async(ctx, next) => {
+  let drawRecordId = ctx.request.body.drawRecordId
+  let wechat = ctx.request.body.wechat
+  let drawRecord = AV.Object.createWithoutData('DrawRecord', drawRecordId)
+  drawRecord.set('weChat', wechat)
+  let result = await drawRecord.save()
+  ctx.body = {
+    status: 200,
+    data: result,
+    msg: `success`
   }
 })
 
