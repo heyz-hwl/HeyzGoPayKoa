@@ -479,10 +479,10 @@ router.post('/draw/delivery', async(ctx, next) => {
     }
     let drawRecord = AV.Object.createWithoutData('DrawRecord', drawRecordId);
     switch (status) {
-      case 1:
+      case '1':
         drawRecord.set('addFriend', true);
         break
-      case 2:
+      case '2':
         drawRecord.set('isDelivery', true);
         break
       default:
