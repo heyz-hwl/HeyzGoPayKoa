@@ -424,7 +424,7 @@ router.get('/draw/willDelivery',
         result = await query.find()
       }
       ctx.body = {
-        status: '200',
+        status: 200,
         data: result,
         msg: `success`
       }

@@ -1,4 +1,5 @@
 const Koa = require('koa')
+const cors = require('koa2-cors');
 const app = new Koa()
 const views = require('koa-views')
 const json = require('koa-json')
@@ -30,7 +31,19 @@ AV.Cloud.useMasterKey();
 
 // error handler
 onerror(app)
-
+app.use(cors({
+  origin: function(ctx) {
+    if (ctx.url === '/test') {
+      return false;
+    }
+    return '*';
+  },
+  exposeHeaders: ['WWW-Authenticate', 'Server-Authorization'],
+  maxAge: 5,
+  credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowHeaders: ['Content-Type', 'Authorization', 'Accept'],
+}));
 // middlewares
 app.use(bodyparser({
   enableTypes:['json', 'form', 'text']
