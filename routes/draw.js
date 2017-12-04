@@ -424,7 +424,7 @@ router.get('/draw/willDelivery',
         result = await query.find()
       }
       ctx.body = {
-        status: 200,
+        status: '200',
         data: result,
         msg: `success`
       }
@@ -440,7 +440,8 @@ router.get('/draw/willDelivery',
 //切换奖品发货状态
 router.put('/draw/delivery', async(ctx, next) => {
   try {
-    let drawRecordId = ctx.request.body.drawRecordId;
+    let drawRecordId = ctx.request.body.drawRecordId
+    let status = ctx.request.body.status
     if (!drawRecordId) {
       return ctx.body = {
         status: -1,
@@ -458,9 +459,12 @@ router.put('/draw/delivery', async(ctx, next) => {
         msg: `no DrawRecord`
       }
     }
-    let isDelivery = DrawRecord.get('isDelivery');
     let drawRecord = AV.Object.createWithoutData('DrawRecord', drawRecordId);
-    drawRecord.set('isDelivery', !isDelivery);
+    switch (status) {
+      case 1: drawRecord.set('addFriend', true); break
+      case 2: drawRecord.set('isDelivery', true); break
+      default: return
+    }
     let result = await drawRecord.save()
     ctx.body = {
       status: 200,
