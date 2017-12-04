@@ -387,19 +387,19 @@ router.put('/draw/selectSkin',
 router.get('/draw/willDelivery',
   async(ctx, next) => {
     try {
-      let time = moment().format('YYYY-MM-DD HH:MM:SS')
       let limit = ctx.query.limit ? Number(ctx.query.limit) : 10
       let skip = ctx.query.skip ? Number(ctx.query.skip) : 0
       let isIOS = util.isBoolean(ctx.query.isIOS)
       let addFriend = util.isBoolean(ctx.query.addFriend)
       let timeType = ctx.query.timeType
-      let promise = [], result = []
+      let promise = [],
+        result = []
       let query = new AV.Query('DrawRecord')
       query.limit(limit)
       query.skip(skip)
       query.equalTo('isDelivery', false)
       query.addDescending('createdAt')
-      // query.lessThan('createdAt', new Date(time))
+      query.lessThan('createdAt', new Date())
       if (isIOS) {
         query.equalTo('isIOS', isIOS)
       }
@@ -409,26 +409,22 @@ router.get('/draw/willDelivery',
       if (timeType) {
         let queryTime = new AV.Query('DrawRecord')
         switch (timeType) {
-          case 1:
-            query.greaterThanOrEqualTo('createdAt', moment().subtract(1, 'day'));
+          case '1':
+            queryTime.greaterThanOrEqualTo('createdAt', new Date(moment().subtract(1, 'day')));
             break
-          case 2:
-            query.greaterThanOrEqualTo('createdAt', moment().subtract(Number(moment().day()), 'day'));
+          case '2':
+            queryTime.greaterThanOrEqualTo('createdAt', new Date(moment().subtract(Number(moment().day()), 'day')));
             break
-          case 3:
-            query.greaterThanOrEqualTo('createdAt', moment().subtract(Number(moment().date()), 'day'));
+          case '3':
+            queryTime.greaterThanOrEqualTo('createdAt', new Date(moment().subtract(Number(moment().date()), 'day')));
             break
         }
         let queryAnd = AV.Query.and(query, queryTime)
         result = await queryAnd.find()
+        console.log(`queryAnd is ${JSON.stringify(queryAnd)}`)
       } else {
+        result = await query.find()
       }
-      result = await query.find()
-      if(_.isEmpty(result)){ 
-        console.log(`query is ${JSON.stringify(query)}`)        
-        console.log(`result is ${JSON.stringify(result)}`)
-      }
-      console.log(`query is ${JSON.stringify(query)}`)              
       result.forEach(async(item, index) => {
         promise.push(new Promise(async(resolve, reject) => {
           try {
