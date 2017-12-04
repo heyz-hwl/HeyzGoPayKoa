@@ -438,7 +438,7 @@ router.get('/draw/willDelivery',
   })
 
 //切换奖品发货状态
-router.put('/draw/delivery', async(ctx, next) => {
+router.post('/draw/delivery', async(ctx, next) => {
   try {
     let drawRecordId = ctx.request.body.drawRecordId
     let status = ctx.request.body.status
