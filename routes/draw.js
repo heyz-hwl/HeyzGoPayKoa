@@ -395,11 +395,11 @@ router.get('/draw/willDelivery',
       let timeType = ctx.query.timeType
       let promise = [], result = []
       let query = new AV.Query('DrawRecord')
-      query.equalTo('isDelivery', false)
       query.limit(limit)
       query.skip(skip)
+      query.equalTo('isDelivery', false)
       query.addDescending('createdAt')
-      query.lessThan('createdAt', new Date(time))
+      // query.lessThan('createdAt', new Date(time))
       if (isIOS) {
         query.equalTo('isIOS', isIOS)
       }
@@ -422,8 +422,13 @@ router.get('/draw/willDelivery',
         let queryAnd = AV.Query.and(query, queryTime)
         result = await queryAnd.find()
       } else {
-        result = await query.find()
       }
+      result = await query.find()
+      if(_.isEmpty(result)){ 
+        console.log(`query is ${JSON.stringify(query)}`)        
+        console.log(`result is ${JSON.stringify(result)}`)
+      }
+      console.log(`query is ${JSON.stringify(query)}`)              
       result.forEach(async(item, index) => {
         promise.push(new Promise(async(resolve, reject) => {
           try {
