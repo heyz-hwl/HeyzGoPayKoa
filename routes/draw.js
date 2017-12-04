@@ -387,14 +387,13 @@ router.put('/draw/selectSkin',
 router.get('/draw/willDelivery',
   async(ctx, next) => {
     try {
-      let result = []
       let time = moment().format('YYYY-MM-DD HH:MM:SS')
       let limit = ctx.query.limit ? Number(ctx.query.limit) : 10
       let skip = ctx.query.skip ? Number(ctx.query.skip) : 0
       let isIOS = util.isBoolean(ctx.query.isIOS)
       let addFriend = util.isBoolean(ctx.query.addFriend)
       let timeType = ctx.query.timeType
-      let promise = []
+      let promise = [], result = []
       let query = new AV.Query('DrawRecord')
       query.equalTo('isDelivery', false)
       query.limit(limit)
@@ -425,7 +424,7 @@ router.get('/draw/willDelivery',
       } else {
         result = await query.find()
       }
-      await result.forEach(async(item, index) => {
+      result.forEach(async(item, index) => {
         promise.push(new Promise(async(resolve, reject) => {
           try {
             let query = new AV.Query('_User')
@@ -440,7 +439,6 @@ router.get('/draw/willDelivery',
           }
         }))
       })
-      logger.error(`promise err is `, promise)
       let ret = await Promise.all(promise)
       ctx.body = {
         status: 200,
