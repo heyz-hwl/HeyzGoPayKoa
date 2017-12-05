@@ -136,7 +136,7 @@ router.get('/sign',
           msg: `success`
         }
       } else {
-        return ctx.body ={
+        return ctx.body = {
           status: -1,
           data: {},
           msg: `不允许重复签到`

@@ -450,7 +450,7 @@ const getFollowList = (userId, limit, skip, type) => {
               user.status = _.isUndefined(mutual) ? 0 : 1
               resolve(user)
             } catch (err) {
-              reject(`followeeQuery err --->`, err)
+              reject(`followeeQuery err --->${err}`)
             }
           }))
         })
@@ -475,7 +475,7 @@ const getFollowList = (userId, limit, skip, type) => {
               user.status = _.isUndefined(mutual) ? 0 : 1
               resolve(user)
             } catch (err) {
-              reject(`followerQuery err --->`, err)
+              reject(`followerQuery err --->${err}`)
             }
           }))
         })
@@ -485,6 +485,70 @@ const getFollowList = (userId, limit, skip, type) => {
     } catch (err) {
       logger.error(`getFollowList err--->`, err)
       reject(`getFollowList err--->${err}`)
+    }
+  })
+}
+
+router.get('/user/friends',
+  jwt.verify, 
+  async(ctx, next) => {
+    try {
+      let userId = ctx.decode.userId
+      if(ctx.query.userId){
+        userId = ctx.query.userId
+      }
+      let ret = await mutualFollow(userId)
+      ctx.body = {
+        status: 200,
+        data: ret,
+        msg: `success`  
+      }
+    } catch(err) {
+      ctx.body = {
+        status: 1,
+        data: {},
+        msg: `get friends err is ${err}` 
+      }
+    }
+  }
+)
+
+const mutualFollow = (userId) => {
+  return new Promise(async(resolve, reject) => {
+    try{
+      let promise = []
+      let user = AV.Object.createWithoutData('_User', userId)
+      let query = new AV.Query('_Followee')
+      query.equalTo('user', user)
+      query.include('followee')
+      let followees = await query.find()
+      followees.forEach((followee, index) => {
+        promise.push(new Promise(async(resolve, reject) => {
+          try {
+            followee = util.getUserInfo(followee.get('followee'))
+            let followeeObj = AV.Object.createWithoutData('_User', followee.userId)
+            let userObj = AV.Object.createWithoutData('_User', userId)
+            let query = new AV.Query('_Followee')
+            query.equalTo('user', followeeObj)
+            query.equalTo('followee', userObj)
+            query.include('user')
+            let mutual = await query.first()
+            if(mutual) {
+              resolve(util.getUserInfo(mutual.get('user')))
+            }
+            resolve(null)
+          } catch (err) {
+            reject(`followeeQuery err --->${err}`)
+          }
+        }))
+      })
+      let result = await Promise.all(promise)
+      let ret = result.filter((item) => {
+        return item !== null
+      })
+      resolve(ret)
+    }catch(err) {
+      reject(`mutualFollow err --->${err}`)
     }
   })
 }
