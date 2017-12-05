@@ -396,10 +396,10 @@ router.get('/draw/willDelivery',
       query.equalTo('isDelivery', false)
       query.addDescending('createdAt')
       query.lessThan('createdAt', new Date())
-      if (isIOS) {
+      if (!_.isUndefined(isIOS)) {
         query.equalTo('isIOS', isIOS)
       }
-      if (addFriend) {
+      if (!_.isUndefined(addFriend)) {
         query.equalTo('addFriend', addFriend)
       }
       if (timeType) {
@@ -414,6 +414,12 @@ router.get('/draw/willDelivery',
           case '3':
             queryTime.greaterThanOrEqualTo('createdAt', new Date(moment().subtract(Number(moment().date()), 'day')));
             break
+          default:
+            return ctx.body = {
+              status: -1,
+              data: {},
+              msg: `timeType err`
+            }
         }
         let queryAnd = AV.Query.and(query, queryTime)
         queryAnd.addDescending('createdAt')
@@ -427,7 +433,7 @@ router.get('/draw/willDelivery',
             let query = new AV.Query('_User')
             query.equalTo('objectId', item.get('userId'))
             let user = await query.first()
-            if(_.isUndefined(user)){
+            if (_.isUndefined(user)) {
               logger.error(item.get('userId'))
             }
             item.set('nickName', user.get('nickName'))
@@ -486,13 +492,17 @@ router.post('/draw/delivery', async(ctx, next) => {
         drawRecord.set('isDelivery', true);
         break
       default:
-        return
+        return ctx.body = {
+          status: -1,
+          data: {},
+          msg: `status err`
+        }
     }
     let result = await drawRecord.save()
     ctx.body = {
       status: 200,
       data: result,
-      msg: `success to true`
+      msg: `success`
     }
   } catch (err) {
     ctx.body = {
