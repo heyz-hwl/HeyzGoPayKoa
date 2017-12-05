@@ -389,11 +389,15 @@ router.get('/draw/willDelivery',
     try {
       let isIOS = util.isBoolean(ctx.query.isIOS)
       let addFriend = util.isBoolean(ctx.query.addFriend)
+      let isDelivery = util.isBoolean(ctx.query.isDelivery)
       let timeType = ctx.query.timeType
       let promise = [],
         result = []
       let query = new AV.Query('DrawRecord')
-      query.equalTo('isDelivery', false)
+      query.equalTo('isDelivery', false)      
+      if(isDelivery){
+        query.equalTo('isDelivery', isDelivery)
+      }
       query.addDescending('createdAt')
       query.lessThan('createdAt', new Date())
       if (_.isBoolean(isIOS)) {
