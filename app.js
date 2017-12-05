@@ -19,6 +19,7 @@ const sign = require('./routes/sign')
 const user = require('./routes/user')
 const token = require('./routes/token')
 const register = require('./routes/register')
+const charges = require('./routes/charges')
 const config = require('./lib/config')
 const AV = require('leancloud-storage')
 
@@ -78,6 +79,7 @@ app.use(channel.routes(), channel.allowedMethods())
 app.use(sign.routes(), sign.allowedMethods())
 app.use(token.routes(), token.allowedMethods())
 app.use(register.routes(), register.allowedMethods())
+app.use(charges.routes(), charges.allowedMethods())
 
 app.on('error', function (err, ctx) {
   console.log(err)
