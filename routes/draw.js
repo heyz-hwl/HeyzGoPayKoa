@@ -396,10 +396,10 @@ router.get('/draw/willDelivery',
       query.equalTo('isDelivery', false)
       query.addDescending('createdAt')
       query.lessThan('createdAt', new Date())
-      if (typeof(isIOS) === Boolean) {
+      if (_.isBoolean(isIOS)) {
         query.equalTo('isIOS', isIOS)
       }
-      if (typeof(addFriend) === Boolean) {
+      if (_.isBoolean(addFriend)) {
         query.equalTo('addFriend', addFriend)
       }
       if (timeType) {
