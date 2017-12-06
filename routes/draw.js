@@ -498,7 +498,7 @@ router.post('/draw/delivery', async(ctx, next) => {
       case '3':
         drawRecord.set('addFriend', false);
         break
-      case '4:
+      case '4':
         drawRecord.set('isDelivery', false);
         break
       default:
