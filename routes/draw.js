@@ -394,8 +394,8 @@ router.get('/draw/willDelivery',
       let promise = [],
         result = []
       let query = new AV.Query('DrawRecord')
-      query.equalTo('isDelivery', false)      
-      if(isDelivery){
+      query.equalTo('isDelivery', false)
+      if (isDelivery) {
         query.equalTo('isDelivery', isDelivery)
       }
       query.addDescending('createdAt')
@@ -494,6 +494,12 @@ router.post('/draw/delivery', async(ctx, next) => {
         break
       case '2':
         drawRecord.set('isDelivery', true);
+        break
+      case '3':
+        drawRecord.set('addFriend', false);
+        break
+      case '4:
+        drawRecord.set('isDelivery', false);
         break
       default:
         return ctx.body = {
