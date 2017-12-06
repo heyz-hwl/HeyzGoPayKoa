@@ -396,6 +396,7 @@ router.get('/draw/willDelivery',
       let query = new AV.Query('DrawRecord')
       query.equalTo('isDelivery', false)
       if (isDelivery) {
+        query.greaterThanOrEqualTo('type', 30)
         query.equalTo('isDelivery', isDelivery)
       }
       query.addDescending('createdAt')
