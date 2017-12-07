@@ -19,7 +19,7 @@ router.post('/twoRoom',
       let roomId = ctx.request.body.data
       let sql = `select socketId from ConnectedUser where userId = "${userId}"`
       let socketId = await db.excute(sql)
-      if (socket.sockets.connected[socketId[0].socketId]) {
+      if (socket.sockets.connected[socketId[0]]) {
         socket.sockets.connected[socketId[0].socketId].emit('phoneCall', roomId)
       } else{
         AV.Push.send({
