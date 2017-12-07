@@ -22,19 +22,20 @@ router.post('/twoRoom',
       logger.debug(`socketId`, socket.sockets.connected[socketId[0].socketId])
       if (socket.sockets.connected[socketId[0].socketId]) {
         socket.sockets.connected[socketId[0].socketId].emit('phoneCall', roomId)
-      }
-      AV.Push.send({
-        channels: [`${userId}`],
-        data: {
-          alert: '找你语音啦!!',
-          type: 1101,
+      } else{
+        AV.Push.send({
+          channels: [`${userId}`],
           data: {
-            userId: userId,
-            roomId: roomId,
-            chatType: 1
+            alert: '找你语音啦!!',
+            type: 1101,
+            data: {
+              userId: userId,
+              roomId: roomId,
+              chatType: 1
+            }
           }
-        }
-      })
+        })
+      }
       return ctx.body = {
         status: 200,
         data: roomId,
