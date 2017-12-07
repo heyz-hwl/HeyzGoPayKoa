@@ -33,7 +33,7 @@ router.post('/twoRoom',
       }
       return ctx.body = {
         status: 200,
-        data: data,
+        data: reqData,
         msg: `success`
       }
     } catch (err) {
