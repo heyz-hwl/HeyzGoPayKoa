@@ -27,11 +27,7 @@ router.post('/twoRoom',
           data: {
             alert: '找你语音啦!!',
             type: 1101,
-            data: {
-              userId: userId,
-              roomId: data.roomId,
-              chatType: 1
-            }
+            data: data
           }
         })
       }
