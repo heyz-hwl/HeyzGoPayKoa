@@ -19,7 +19,6 @@ router.post('/twoRoom',
       let roomId = ctx.request.body.data
       let sql = `select socketId from ConnectedUser where userId = "${userId}"`
       let socketId = await db.excute(sql)
-      logger.debug(`socketId`, socket.sockets.connected[socketId[0].socketId])
       if (socket.sockets.connected[socketId[0].socketId]) {
         socket.sockets.connected[socketId[0].socketId].emit('phoneCall', roomId)
       } else{
@@ -217,12 +216,10 @@ router.get('/bigRoom',
         let sql = `select id from BigRoom where 1 = 1`
         roomIdList = await db.excute(sql)
       }
-      logger.debug(`roomIdList`, roomIdList)
       roomIdList.forEach((roomId) => {
         promise.push(new Promise(async(resolve, reject) => {
           try {
             let user = await getBigRoomUserInfo(roomId.id)
-            logger.debug(`user`, user)
             resolve(user)
           } catch (err) {
             reject(err)
@@ -360,7 +357,6 @@ router.post('/audio/ban',
         roomId
       } = ctx.request.body
       let ownerId = ctx.decode.userId
-      logger.debug(`userId, roomId, ownerId`, userId, roomId, ownerId)
       let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId)
       let room = await query.first()
@@ -568,7 +564,6 @@ router.post('/audio/blockList',
         roomId
       } = ctx.request.body
       let ownerId = ctx.decode.userId
-      logger.debug(`userId, roomId, ownerId`, userId, roomId, ownerId)
       let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId)
       let room = await query.first()
@@ -811,7 +806,6 @@ const userRoom = (userId) => {
     }
     let isHost = room.get('owner') == userId
     let icon = room.get('icon').get('url')
-    logger.debug(`icon`, icon)
     let data = {
       roomId: room.get('objectId'),
       title: room.get('title'),
@@ -860,7 +854,6 @@ const getBigRoomUserInfo = (roomId) => {
       let ownerId = await db.excute(sql)
       sql = `select userId from UserBigRoom where roomId = "${roomId}"`
       let userId = await db.excute(sql)
-      logger.debug(`ownerId, userId`, ownerId, userId)
       let arr = _.isEmpty(userId) ? [ownerId[0].ownerId] : [ownerId[0].ownerId, ...[userId[0].userId]]
       arr.forEach((item, index) => {
         data.push(new Promise(async(resolve, reject) => {
@@ -1125,7 +1118,6 @@ router.get('/audio/rooms',
         promise.push(new Promise(async(resolve, reject) => {
           try {
             let userInfo = await getRoomUserInfo(room)
-            logger.debug(`userInfo`, userInfo)
             let data = {
               roomId: room.get('objectId'),
               title: room.get('title'),
@@ -1226,7 +1218,6 @@ router.post('/audio/userLeave',
   async(ctx, next) => {
     try {
       let userId = ctx.request.body.userId || ctx.decode.userId
-      logger.debug(`userId`, userId)
       let roomId = ctx.request.body.roomId
       let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId)

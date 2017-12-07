@@ -1,7 +1,6 @@
 const AV = require('leancloud-storage');
 const router = require('koa-router')()
 const jwt = require('../lib/jwt');
-const async = require('async');
 const _ = require('lodash');
 const socket = require('../lib/socket');
 const util = require('../lib/util');

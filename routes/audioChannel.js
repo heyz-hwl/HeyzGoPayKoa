@@ -20,7 +20,6 @@ router.get('/audio/userSequence',
       let userId = ctx.decode.userId;
       let sql = `select * from Sequence where userId="${userId}"`
       let result = await db.excute(sql)
-      logger.debug(`result`, result)
       if (_.isEmpty(result)) {
         return ctx.body = {
           status: -1,
@@ -95,7 +94,6 @@ router.post('/audio/applySequence',
             order_nub: order_nub
           }
         }
-        logger.debug(`applySequence ret1`, ret)
         socket.sockets.emit('applySequence', {
           data: ret
         });
@@ -107,7 +105,6 @@ router.post('/audio/applySequence',
         changeSequence(channelId);
       } else {
         order_nub = Number(user[0].order_nub) + 1; //_.get(user[0], 'order_nub', 1)
-        logger.debug(`user`, user)
         let inArray = user.some((item) => {
           return item.userId === userId
         })
@@ -130,7 +127,6 @@ router.post('/audio/applySequence',
             order_nub: order_nub
           }
         }
-        logger.debug(`applySequence ret2`, ret)
         socket.sockets.emit('applySequence', {
           data: ret
         });
@@ -165,7 +161,6 @@ router.get('/audio/leaveSequence',
           msg: `该用户不在麦序中`
         }
       }
-      logger.debug(`order[0].order_nub`, order[0].order_nub)
       if (order[0].order_nub == 1) {
         return ctx.body = {
           status: 403,
@@ -214,7 +209,6 @@ const changeSequence = (channelId) => {
     try {
       channelId = channelId || '1';
       let data = [];
-      logger.debug(`changeSequence start`)
       let sql = `select * from Sequence where 1=1 order by order_nub limit 0,1`;
       let orderOneUser = await db.excute(sql)
       if (_.isEmpty(orderOneUser)) {
@@ -257,7 +251,6 @@ const changeSequence = (channelId) => {
             })
             let r = await Promise.all(promise)
             let data = await getTop3Seq()
-            logger.debug(`changeSequence socket`, data)
             socket.sockets.emit('changeSequence', {
               data: {
                 userList: data
@@ -335,7 +328,6 @@ const getUserInfoList = (userList) => {
 }
 
 changeSequence(1).then((ret) => {
-  logger.debug(`changeSequence --->`, ret)
 }).catch((err) => {
   logger.error(`changeSequence err --->`, err)
 })
