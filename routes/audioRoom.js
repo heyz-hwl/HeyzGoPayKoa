@@ -24,10 +24,10 @@ router.post('/twoRoom',
       } else{
         AV.Push.send({
           channels: [`${userId}`],
-          data: {
+          'data': {
             alert: '找你语音啦!!',
             type: 1101,
-            data: {
+            'data': {
               userId: userId,
               roomId: roomId,
               chatType: 1
