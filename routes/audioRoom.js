@@ -16,7 +16,7 @@ router.post('/twoRoom',
   async(ctx, next) => {
     try {
       let userId = ctx.request.body.userId
-      let data = ctx.request.body.data
+      let reqData = ctx.request.body.data
       let sql = `select socketId from ConnectedUser where userId = "${userId}"`
       let socketId = await db.excute(sql)
       if (socket.sockets.connected[socketId[0]]) {
@@ -27,7 +27,7 @@ router.post('/twoRoom',
           data: {
             alert: '找你语音啦!!',
             type: 1101,
-            data: data
+            result: reqData
           }
         })
       }
