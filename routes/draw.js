@@ -342,7 +342,7 @@ router.put('/draw/selectSkin',
       let isWechat = util.isBoolean(data.isWechat)
       let isIOS = util.isBoolean(data.isIOS)
       console.log(`drawRecordId->${drawRecordId} skinName->${skinName} skinId->${skinId} prizeWinnerID->${prizeWinnerID} isWechat->${isWechat} isIOS->${isIOS}`)
-      if (!prizeWinnerID || !drawRecordId || !skinName || !skinId || !isIOS || !isWechat) {
+      if (!prizeWinnerID || !drawRecordId || !skinName || !skinId || !_.isBoolean(isIOS) || !_.isBoolean(isWechat)) {
         return ctx.body = {
           status: 403,
           data: {},
