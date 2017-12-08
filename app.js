@@ -21,6 +21,7 @@ const token = require('./routes/token')
 const register = require('./routes/register')
 const charges = require('./routes/charges')
 const gift = require('./routes/gift')
+const withdrawal = require('./routes/withdrawal')
 
 const config = require('./lib/config')
 const AV = require('leancloud-storage')
@@ -83,6 +84,7 @@ app.use(register.routes(), register.allowedMethods())
 app.use(charges.routes(), charges.allowedMethods())
 app.use(gift.routes(), gift.allowedMethods())
 app.use(hooks.routes(), hooks.allowedMethods())
+app.use(withdrawal.routes(), withdrawal.allowedMethods())
 
 app.on('error', function (err, ctx) {
   console.log(err)
