@@ -18,8 +18,9 @@ router.post('/sendGift',
   async(ctx, next) => {
     try {
       let senderId = ctx.decode.userId
-      let receiverId = ctx.req.body.receiverId
-      let giftId = ctx.req.body.giftId
+      senderId = _.isUndefined(ctx.request.body.userId) ? senderId : ctx.request.body.userId
+      let receiverId = ctx.request.body.receiverId
+      let giftId = ctx.request.body.giftId
       let ret = await send(senderId, receiverId, giftId)
       ctx.body = {
         status: 200,
@@ -42,6 +43,7 @@ router.post('/sendMoney',
   async(ctx, next) => {
     try {
       let senderId = ctx.decode.userId
+      senderId = _.isUndefined(ctx.request.body.userId) ? senderId : ctx.request.body.userId      
       let receiverId = ctx.request.body.receiverId
       let giftId = ctx.request.body.giftId
       let cost = ctx.request.body.cost
