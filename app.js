@@ -9,8 +9,8 @@ const bodyparser = require('koa-bodyparser')
 const log4js = require('koa-log4')
 const logger = log4js.getLogger('app')
 
+const hooks = require('./routes/hooks')
 const index = require('./routes/index')
-const users = require('./routes/users')
 const hok = require('./routes/hok').router
 const draw = require('./routes/draw')
 const room = require('./routes/audioRoom')
@@ -71,8 +71,8 @@ app.use(async (ctx, next) => {
 })
 
 // routes
+app.use(index.routes(). hooks.allowedMethods())
 app.use(index.routes(), index.allowedMethods())
-app.use(users.routes(), users.allowedMethods())
 app.use(user.routes(), user.allowedMethods())
 app.use(hok.routes(), hok.allowedMethods())
 app.use(draw.routes(), draw.allowedMethods())
