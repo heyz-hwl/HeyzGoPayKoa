@@ -5,11 +5,12 @@ const util = require('../lib/util')
 const moment = require('moment')
 const middle = require('../lib/middle')
 const _ = require('lodash')
+const log4js = require('koa-log4')
+const logger = log4js.getLogger('router')
 
 //ping++ 接收 Webhooks 通知
 router.post('/hooks', async(ctx, next) => {
   let body = ctx.request.body; //接收信息
-  // console.log('接收 Webhooks 通知body-->' + JSON.stringify(body));
   let time = moment().format('YYYY-MM-DD HH:mm:ss')
   let resp = (ret, status_code) => {
     ctx.res.writeHead(status_code, {
@@ -28,49 +29,44 @@ router.post('/hooks', async(ctx, next) => {
         let sql = 'update Recharge set status = 1 where order_no = ' + event.data.object.order_no;
         await db.excute(sql)
         //修改钱包金额
-        let rechargeSql = 'select userId,amount,rate from Recharge where order_no = ' + event.data.object.order_no;
-        let rs = await db.excute(rechargeSql)
-        sql = `select * from Wallet where userId="${rs[0].userId}"`
-        let info = await db.excute(sql)
-        if (!_.isEmpty(info)) {
+        let rechargeSql = 'select * from Recharge where order_no = ' + event.data.object.order_no;
+        let rechargeData = await db.excute(rechargeSql)
+        sql = `select * from Wallet where userId="${rechargeData[0].userId}"`
+        let walletData = await db.excute(sql)
+        if (!_.isEmpty(walletData)) {
           console.log('----存在该用户的记录，更新amount----');
-          let amount = util.oprate(Number(info[0].amount), Number(rs[0].amount), 'add');
-          let tmp = util.oprate(Number(rs[0].amount), Number(rs[0].rate), 'mul');
-          let yuyi_num = util.oprate(Number(info[0].yuyi_num), tmp, 'add');
-          let sql = `update Wallet set amount="${amount}",yuyi_num="${yuyi_num}",updateTime="${time}" where id="${info.id}"`
+          let amount = util.oprate(Number(walletData[0].amount), Number(rechargeData[0].amount), 'add');
+          let yuyi_num = util.oprate(Number(walletData[0].yuyi_num), Number(rechargeData[0].yuyi_num), 'add');    
+          let sql = `update Wallet set amount="${amount}",yuyi_num="${yuyi_num}",updateTime="${time}" where id="${walletData[0].id}"`
           await db.excute(sql)
-          //记录钱包黑石
           let obj = {
-            'userId': rs[0].userId,
+            'userId': rechargeData[0].userId,
             'type': '1', //充值成功
             'status': '+', //增加
-            'yuyi_num': yuyi_num, //黑石数
+            'yuyi_num': rechargeData[0].yuyi_num, 
             'time': moment().format('YYYY-MM-DD HH:mm:ss'),
             'timeStamp': util.getTimeStamp()
           }
-          await middle.walletRecord(obj)
+          let d = await middle.walletRecord(obj)
           resp("OK", 200);
         } else {
           console.log('----不存在该用户的记录，新增----');
-          // resp("OK", 200);
-          //记录钱包黑石
-          let yuyi_num = util.oprate(Number(rs[0].amount), Number(rs[0].rate), 'mul')
-          let sql = `insert into Wallet values(null, "${rs[0].userId}", "${rs[0].amount}", "${yuyi_num}", "${time}", "${time}")`
+          let sql = `insert into Wallet values(null, "${rechargeData[0].userId}", "${rechargeData[0].amount}", "${rechargeData[0].yuyi_num}", "${time}", "${time}")`
           await db.excute(sql)
           let obj = {
-            'userId': rs[0].userId,
+            'userId': rechargeData[0].userId,
             'type': '1', //充值成功
             'status': '+', //增加
-            'yuyi_num': util.oprate(Number(rs[0].amount), Number(rs[0].rate), 'mul'), //黑石数
+            'yuyi_num': rechargeData[0].yuyi_num, 
             'time': moment().format('YYYY-MM-DD HH:mm:ss'),
             'timeStamp': util.getTimeStamp()
           }
-          await middle.walletRecord(obj)
+          let d = await middle.walletRecord(obj)
           resp("OK", 200);
         }
         break;
       case "refund.succeeded":
-        // 开发者在此处加入对退款异步通知的处理代码
+        // 在此处加入对退款异步通知的处理代码
         return resp("OK", 200)
         break;
       default:
@@ -78,7 +74,7 @@ router.post('/hooks', async(ctx, next) => {
         break;
     }
   } catch (err) {
-    console.log(`hook err->${err}`)
+    logger.error(`hooks err -->`, err)
     return resp(`JSON 解析失败`, 400)
   }
 })
