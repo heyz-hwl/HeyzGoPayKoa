@@ -11,6 +11,21 @@ const {
   upgrade
 } = require('../lib/func');
 
+const retIOS = { //IOS
+  url: `https://dn-msjbwutc.qbox.me/6f856fd7729fdaca0d3c.jpg`,
+  title: `请添加客服微信确认信息`,
+  wx: `ruoruchujian1688`,
+  gameId: `语易`,
+  msg: `添加好友,获取礼品`
+}
+const retAndroid = { //安卓
+  url: `https://dn-msjbwutc.qbox.me/41277da3b1515c49c14c.png`,
+  title: `请添加客服微信确认信息`,
+  wx: `Heyz_Yuyi`,
+  gameId: `语易heyz`,
+  msg: `添加好友,获取礼品`
+}
+
 router.prefix('/v1')
 
 //抽奖
@@ -250,12 +265,8 @@ router.get(`/draw/kefu`,
   jwt.verify,
   async(ctx, next) => {
     try {
-      const result = {
-        url: `https://dn-msjbwutc.qbox.me/41277da3b1515c49c14c.png`,
-        title: `请添加客服微信确认信息`,
-        wx: `Heyz_Yuyi`,
-        msg: `添加好友,获取礼品`
-      };
+      let isIOS = util.isBoolean(ctx.query.isIOS)
+      let result = isIOS ? retIOS : retAndroid
       ctx.body = {
         status: 200,
         data: result,
@@ -329,19 +340,13 @@ router.put('/draw/selectSkin',
   async(ctx, next) => {
     try {
       let data = ctx.request.body;
-      const result = {
-        url: `https://dn-msjbwutc.qbox.me/41277da3b1515c49c14c.png`,
-        title: `请添加客服微信确认信息`,
-        wx: `Heyz_Yuyi`,
-        msg: `添加好友,获取礼品`
-      }
       let drawRecordId = data.drawRecordId
       let skinName = data.skinName
       let skinId = data.skinId
       let prizeWinnerID = data.prizeWinnerID
       let isWechat = util.isBoolean(data.isWechat)
       let isIOS = util.isBoolean(data.isIOS)
-      console.log(`drawRecordId->${drawRecordId} skinName->${skinName} skinId->${skinId} prizeWinnerID->${prizeWinnerID} isWechat->${isWechat} isIOS->${isIOS}`)
+      let result = isIOS ? retIOS : retAndroid
       if (!prizeWinnerID || !drawRecordId || !skinName || !skinId || !_.isBoolean(isIOS) || !_.isBoolean(isWechat)) {
         return ctx.body = {
           status: 403,
