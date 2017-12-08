@@ -36,14 +36,14 @@ router.post('/hooks', async(ctx, next) => {
         if (!_.isEmpty(walletData)) {
           console.log('----存在该用户的记录，更新amount----');
           let amount = util.oprate(Number(walletData[0].amount), Number(rechargeData[0].amount), 'add');
-          let yuyi_num = util.oprate(Number(walletData[0].yuyi_num), Number(rechargeData[0].yuyi_num), 'add');    
+          let yuyi_num = util.oprate(Number(walletData[0].yuyi_num), Number(rechargeData[0].yuyi_num), 'add');
           let sql = `update Wallet set amount="${amount}",yuyi_num="${yuyi_num}",updateTime="${time}" where id="${walletData[0].id}"`
           await db.excute(sql)
           let obj = {
             'userId': rechargeData[0].userId,
             'type': '1', //充值成功
             'status': '+', //增加
-            'yuyi_num': rechargeData[0].yuyi_num, 
+            'yuyi_num': rechargeData[0].yuyi_num,
             'time': moment().format('YYYY-MM-DD HH:mm:ss'),
             'timeStamp': util.getTimeStamp()
           }
@@ -57,7 +57,7 @@ router.post('/hooks', async(ctx, next) => {
             'userId': rechargeData[0].userId,
             'type': '1', //充值成功
             'status': '+', //增加
-            'yuyi_num': rechargeData[0].yuyi_num, 
+            'yuyi_num': rechargeData[0].yuyi_num,
             'time': moment().format('YYYY-MM-DD HH:mm:ss'),
             'timeStamp': util.getTimeStamp()
           }
@@ -65,8 +65,11 @@ router.post('/hooks', async(ctx, next) => {
           resp("OK", 200);
         }
         break;
+      case "balance.withdrawal.succeeded":
+        // 在此处加入对提现的处理代码
+        break;
       case "refund.succeeded":
-        // 在此处加入对退款异步通知的处理代码
+        // 在此处加入对退款的处理代码
         return resp("OK", 200)
         break;
       default:

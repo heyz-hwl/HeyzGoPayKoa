@@ -17,10 +17,9 @@ router.post('/charges',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let {
-        userId,
-        amount
-      } = ctx.request.body; //接收数据
+      let amount = ctx.request.body.amount; //接收数据
+      let userId = ctx.decode.userId
+      userId = ctx.query.userId ? ctx.query.userId : userId      
       let amountPing = 0; //转换金额，为ping++ amount服务
       //检查必传参数是否存在
       if (!userId || !amount) {
@@ -42,11 +41,11 @@ router.post('/charges',
       }
       let orderNo = moment().format('YYYYMMDDHHmmss') + util.randomNum(4); //时分秒+4位随机数，组成订单号
       let channel = 'wx';
-      let charge = await func.pingCharges(amountPing, orderNo, channel)
+      let charge = await pingCharges(amountPing, orderNo, channel)
       //charge对象创建成功，往充值表插入数据
-      let heyz_num = util.oprate(amount, config.rate, 'mul'); //黑石数：人民币 10：1
+      let yuyi_num = util.oprate(amount, config.rate, 'mul'); //语易数：人民币 10：1
       let time = moment().format('YYYY-MM-DD HH:mm:ss');
-      let sql = `insert into Recharge values(null, "${userId}", "${orderNo}", "充值", "${amount}", "${heyz_num}", 3, "${channel}", "${time}", "${charge.id}", "${charge.time_expire}", "${config.rate}");`;
+      let sql = `insert into Recharge values(null, "${userId}", "${orderNo}", "充值", "${amount}", "${yuyi_num}", 3, "${channel}", "${time}", "${charge.id}", "${charge.time_expire}", "${config.rate}");`;
       let ret = await db.excute(sql)
       console.log(`ret -> ${JSON.stringify(ret)}`)
       return ctx.body = {
@@ -166,5 +165,38 @@ router.get('/wallet',
       }
     }
   })
+
+  const pingCharges = (amountPing, orderNo, channel) => {
+    return new Promise((resolve, reject) => {
+      pingpp.charges.create({
+        subject: "充值",
+        body: "黑石传媒科技",
+        amount: amountPing, //订单总金额, 人民币单位：分（如订单总金额为 1 元，此处请填 100）
+        order_no: orderNo,
+        channel: channel,
+        currency: "cny",
+        client_ip: "127.0.0.1",
+        app: {
+          id: config.pingpp.appId
+        }
+      }, (err, charge) => {
+        if (err) {
+          reject(`pay pingCharges err--> ${err}`);
+        }
+        resolve(charge)
+      })
+    })
+  }
+
+  const pingRetrieve = (chargeId) => {
+    return new Promise(async(resolve, reject) => {
+      pingpp.charges.retrieve(chargeId, (err, charge) => {
+        if (err) {
+          reject(`pingRetrieve err -> ${err}`)
+        }
+        resolve(charge)
+      })
+    })
+  }  
 
 module.exports = router;
