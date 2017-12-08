@@ -8,6 +8,7 @@ const db = require('../lib/db');
 const util = require('../lib/util');
 const middle = require('../lib/middle');
 const func = require('../lib/func')
+const _ = require('lodash')
 
 router.prefix('/v1')
 
@@ -67,10 +68,10 @@ router.post('/charges',
 router.get('/charges',
   jwt.verify,
   async(ctx, next) => {
-    let userId = ctx.query.userId; //获取用户ID
-    let page = ctx.query.page; //页码
-    let size = ctx.query.size; //每页大小
-
+    let userId = ctx.decode.userId; //获取用户ID
+    let size = ctx.query.size ? ctx.query.size : 10; //每页大小
+    let page = ctx.query.page ? ctx.query.page : 1; //页码
+    userId = ctx.query.userId ? ctx.query.userId : userId    
     let result = await middle.getPageInfoByMySql('Recharge', userId, page, size)
     console.log('result-->' + JSON.stringify(result));
     ctx.body = {
@@ -139,34 +140,22 @@ router.get('/wallet',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let userId = ctx.query.userId; //用户ID
-      if (userId) {
-        let query = new AV.Query('Wallet');
-        query.equalTo('userId', userId);
-        let info = await query.first()
-        let tmpObj = {
-          'amount': 0,
-          'heyz_num': 0,
-          'virtual_cny': 0
-        }
-        if (info) {
-          ctx.body = {
-            status: 200,
-            data: info,
-            msg: 'Successful'
-          }
-        } else {
-          ctx.body = {
-            status: 200,
-            data: tmpObj,
-            msg: 'Successful'
-          }
+      let userId = ctx.decode.userId; //用户ID
+      userId = ctx.query.userId ? ctx.query.userId : userId
+      let sql = `select * from Wallet where userId="${userId}"`
+      console.log(`sql ->${sql}`)
+      let info = await db.excute(sql)
+      if (!_.isEmpty(info)) {
+        ctx.body = {
+          status: 200,
+          data: info,
+          msg: 'Successful'
         }
       } else {
-        return ctx.body = {
-          status: 1000,
+        ctx.body = {
+          status: 403,
           data: {},
-          msg: 'Parameter missing!'
+          msg: '未注册钱包'
         }
       }
     } catch (err) {
