@@ -1,20 +1,21 @@
 const router = require('koa-router')()
-const AV = require('leancloud-storage');
-const db = require('../lib/db');
-const util = require('../lib/util');
-const middle = require('../lib/middle');
+const AV = require('leancloud-storage')
+const db = require('../lib/db')
+const util = require('../lib/util')
+const moment = require('moment')
+const middle = require('../lib/middle')
 const _ = require('lodash')
 
 //ping++ 接收 Webhooks 通知
-router.post('/hooks', (ctx, next) => {
+router.post('/hooks', async(ctx, next) => {
   let body = ctx.request.body; //接收信息
-  console.log('接收 Webhooks 通知body-->' + JSON.stringify(body));
+  // console.log('接收 Webhooks 通知body-->' + JSON.stringify(body));
   let time = moment().format('YYYY-MM-DD HH:mm:ss')
   let resp = (ret, status_code) => {
-    ctx.response.writeHead(status_code, {
+    ctx.res.writeHead(status_code, {
       "Content-Type": "text/plain; charset=utf-8"
     })
-    ctx.response.end(ret)
+    ctx.body = (ret)
   }
   try {
     let event = body;
@@ -33,9 +34,9 @@ router.post('/hooks', (ctx, next) => {
         let info = await db.excute(sql)
         if (!_.isEmpty(info)) {
           console.log('----存在该用户的记录，更新amount----');
-          let amount = util.oprate(Number(info.get('amount')), Number(rs[0].amount), 'add');
+          let amount = util.oprate(Number(info[0].amount), Number(rs[0].amount), 'add');
           let tmp = util.oprate(Number(rs[0].amount), Number(rs[0].rate), 'mul');
-          let yuyi_num = util.oprate(Number(info.get('yuyi_num')), tmp, 'add');
+          let yuyi_num = util.oprate(Number(info[0].yuyi_num), tmp, 'add');
           let sql = `update Wallet set amount="${amount}",yuyi_num="${yuyi_num}",updateTime="${time}" where id="${info.id}"`
           await db.excute(sql)
           //记录钱包黑石
@@ -43,7 +44,7 @@ router.post('/hooks', (ctx, next) => {
             'userId': rs[0].userId,
             'type': '1', //充值成功
             'status': '+', //增加
-            'heyzNum': heyz_num, //黑石数
+            'yuyi_num': yuyi_num, //黑石数
             'time': moment().format('YYYY-MM-DD HH:mm:ss'),
             'timeStamp': util.getTimeStamp()
           }
@@ -60,7 +61,7 @@ router.post('/hooks', (ctx, next) => {
             'userId': rs[0].userId,
             'type': '1', //充值成功
             'status': '+', //增加
-            'heyzNum': util.oprate(Number(rs[0].amount), Number(rs[0].rate), 'mul'), //黑石数
+            'yuyi_num': util.oprate(Number(rs[0].amount), Number(rs[0].rate), 'mul'), //黑石数
             'time': moment().format('YYYY-MM-DD HH:mm:ss'),
             'timeStamp': util.getTimeStamp()
           }
@@ -70,14 +71,15 @@ router.post('/hooks', (ctx, next) => {
         break;
       case "refund.succeeded":
         // 开发者在此处加入对退款异步通知的处理代码
-        return resp("OK", 200);
+        return resp("OK", 200)
         break;
       default:
-        return resp("未知 Event 类型", 400);
+        return resp("未知 Event 类型", 400)
         break;
     }
   } catch (err) {
-    return resp('JSON 解析失败', 400);
+    console.log(`hook err->${err}`)
+    return resp(`JSON 解析失败`, 400)
   }
 })
 

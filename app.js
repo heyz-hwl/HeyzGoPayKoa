@@ -71,7 +71,6 @@ app.use(async (ctx, next) => {
 })
 
 // routes
-app.use(index.routes(). hooks.allowedMethods())
 app.use(index.routes(), index.allowedMethods())
 app.use(user.routes(), user.allowedMethods())
 app.use(hok.routes(), hok.allowedMethods())
@@ -83,6 +82,7 @@ app.use(token.routes(), token.allowedMethods())
 app.use(register.routes(), register.allowedMethods())
 app.use(charges.routes(), charges.allowedMethods())
 app.use(gift.routes(), gift.allowedMethods())
+app.use(hooks.routes(), hooks.allowedMethods())
 
 app.on('error', function (err, ctx) {
   console.log(err)
