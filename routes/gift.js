@@ -12,6 +12,7 @@ const logger = log4js.getLogger('router')
 
 router.prefix('/v1')
 
+//送礼物
 router.post('/sendGift',
   jwt.verify,
   async(ctx, next) => {
@@ -19,7 +20,7 @@ router.post('/sendGift',
       let senderId = ctx.decode.userId
       let receiverId = ctx.req.body.receiverId
       let giftId = ctx.req.body.giftId
-      let ret = await send(senderId, receiverId, giftId, )
+      let ret = await send(senderId, receiverId, giftId)
       ctx.body = {
         status: 200,
         data: ret,
@@ -35,6 +36,7 @@ router.post('/sendGift',
   }
 )
 
+//发红包
 router.post('/sendMoney',
   jwt.verify,
   async(ctx, next) => {
@@ -42,7 +44,8 @@ router.post('/sendMoney',
       let senderId = ctx.decode.userId
       let receiverId = ctx.request.body.receiverId
       let giftId = ctx.request.body.giftId
-      let ret = await send(senderId, receiverId, 0, 10)
+      let cost = ctx.request.body.cost
+      let ret = await send(senderId, receiverId, giftId, cost)
       ctx.body = {
         status: 200,
         data: ret,
@@ -59,49 +62,64 @@ router.post('/sendMoney',
 )
 
 //发钱或者送礼物
-const send = (senderId, receiverId, giftId, amount) => {
+const send = (senderId, receiverId, giftId, cost) => {
   return new Promise(async(resolve, reject) => {
     try {
-      if (giftId == 0) {
-        let time = moment().format(`YYYY-MM-DD HH:MM:SS`)
-        let timeStamp = util.getTimeStamp()
-        let orderNo = moment().format('YYYYMMDDHHmmss') + util.randomNum(4); //时分秒+4位随机数，组成订单号
-        let yuyiNum = util.oprate(amount, config.rate, 'mul'); //羽翼数：人民币 10：1
-        let sql = `insert into YuyiConsume values(null, "${senderId}", "${orderNo}", "发红包", "${amount}", "${yuyiNum}", "${time}", "${config.rate}")`
-        console.log(`sql -> ${sql}`)
-        let ret = await db.excute(sql)
-        sql = `insert into YuyiTradeRecord values(null, "${senderId}", "1", "1", "${yuyiNum}", "${time}", "${timeStamp}")`
-        let ret2 = await db.excute(sql)
-        resolve(ret)
+      let time = moment().format(`YYYY-MM-DD HH:MM:SS`)
+      let timeStamp = util.getTimeStamp()
+      let orderNo = moment().format('YYYYMMDDHHmmss') + util.randomNum(4); //时分秒+4位随机数，组成订单号
+      let giftData = giftMap[giftId]
+      cost = !_.isUndefined(cost) ? cost : giftData.costNum
+      if (await ableToSend(senderId, cost)) {
+        if (giftId === '0') {
+          let amount = util.oprate(cost, config.rate, 'div'); //羽翼数：人民币 10：1      
+          let sql = `insert into YuyiConsume values(null, "${senderId}", "${receiverId}", "${orderNo}", "发红包", "${amount}", "${cost}", "${time}", "${config.rate}")`
+          let ret = await db.excute(sql)
+        } else {
+          let yuyiNum = util.oprate(giftData.costNum, config.rate, 'mul')
+          let sql = `insert into YuyiConsume values(null, "${senderId}", "${receiverId}", "${orderNo}", "送${giftData.name}礼物", "${giftData.costNum}", "${yuyiNum}", "${time}", "${config.rate}")`
+          let ret = await db.excute(sql)
+        }
       } else {
-        let giftData = giftMap.giftId
-        resolve(giftData)
+        reject(new Error(`not enough money`))
+      }
+      resolve(`success`)
+    } catch (err) {
+      reject(new Error(`send err -> ${err}`))
+    }
+  })
+}
+
+//是否够钱
+const ableToSend = (senderId, cost) => {
+  return new Promise(async(resolve, reject) => {
+    try {
+      let sql = `select * from Wallet where userId="${senderId}"`
+      let ret = await db.excute(sql)
+      if (ret[0].yuyi_num >= cost) {
+        sql = `update Wallet set yuyi_num="${ret[0].yuyi_num - cost}" where userId="${senderId}"`
+        let result = await db.excute(sql)
+        resolve(true)
+      } else {
+        resolve(false)
       }
     } catch (err) {
-      reject(`send err -->${err}`)
+      reject(new Error(`ableToSend err -> ${err}`))
     }
   })
 }
 
 const giftMap = [{
-  0: {
-    name: '红包'
-  }
+  name: '红包'
 }, {
-  1: {
-    name: '爱心',
-    costNum: 123
-  }
+  name: '爱心',
+  costNum: 100
 }, {
-  2: {
-    name: '爱心',
-    costNum: 123
-  }
+  name: '爱心',
+  costNum: 100
 }, {
-  3: {
-    name: '爱心',
-    costNum: 123
-  }
+  name: '爱心',
+  costNum: 100
 }]
 
 module.exports = router;
