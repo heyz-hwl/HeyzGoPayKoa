@@ -29,7 +29,7 @@ router.post('/charges',
           msg: 'Parameter missing!'
         }
       }
-      //检查金额是否合法（为数字且大于或等于0.1元且小于等于1亿）
+      //检查金额是否合法（为数字且大于或等于0.01元且小于等于1亿）
       if (util.isNumber(amount) && amount >= 0.01 && amount <= 100000000) {
         amountPing = amount * 100;
       } else {
@@ -47,7 +47,6 @@ router.post('/charges',
       let time = moment().format('YYYY-MM-DD HH:mm:ss');
       let sql = `insert into Recharge values(null, "${userId}", "${orderNo}", "充值", "${amount}", "${yuyi_num}", 3, "${channel}", "${time}", "${charge.id}", "${charge.time_expire}", "${config.rate}");`;
       let ret = await db.excute(sql)
-      console.log(`ret -> ${JSON.stringify(ret)}`)
       return ctx.body = {
         status: 200,
         data: charge,

@@ -51,8 +51,8 @@ router.post('/hooks', async(ctx, next) => {
           resp("OK", 200);
         } else {
           console.log('----不存在该用户的记录，新增----');
-          let sql = `insert into Wallet values(null, "${rechargeData[0].userId}", "${rechargeData[0].amount}", "${rechargeData[0].yuyi_num}", "${time}", "${time}")`
-          await db.excute(sql)
+          let sql = `insert into Wallet values(null, "${rechargeData[0].userId}", "${rechargeData[0].amount}", "${rechargeData[0].yuyi_num}", 0,  "${time}", "${time}")`
+          let ret = await db.excute(sql)
           let obj = {
             'userId': rechargeData[0].userId,
             'type': '1', //充值成功
