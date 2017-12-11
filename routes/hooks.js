@@ -8,6 +8,11 @@ const _ = require('lodash')
 const log4js = require('koa-log4')
 const logger = log4js.getLogger('router')
 
+/*
+Wallet: values(null, "${userId}", "${amount}", "${yuyi_num}", ${yumao_num},  "${createTime}", "${updateTime}")
+Recharge: values(null, "${userId}", "${order_no}", "${order_name}", "${amount}", "${status}", "${channel}", "${createTime}", "${chargeId}", "${time_expire}", "${rate}")
+*/
+
 //ping++ 接收 Webhooks 通知
 router.post('/hooks', async(ctx, next) => {
   let body = ctx.request.body; //接收信息
@@ -26,10 +31,10 @@ router.post('/hooks', async(ctx, next) => {
     switch (event.type) {
       case "charge.succeeded":
         //支付成功，更新充值表对应该订单的状态
-        let sql = 'update Recharge set status = 1 where order_no = ' + event.data.object.order_no;
+        let sql = `update Recharge set status = 1 where order_no="${event.data.object.order_no}"`
         await db.excute(sql)
         //修改钱包金额
-        let rechargeSql = 'select * from Recharge where order_no = ' + event.data.object.order_no;
+        let rechargeSql = `select * from Recharge where order_no="${event.data.object.order_no}"`
         let rechargeData = await db.excute(rechargeSql)
         sql = `select * from Wallet where userId="${rechargeData[0].userId}"`
         let walletData = await db.excute(sql)
