@@ -43,7 +43,7 @@ router.post('/charges',
       let channel = 'wx';
       let charge = await pingCharges(amountPing, orderNo, channel)
       //charge对象创建成功，往充值表插入数据
-      let yuyi_num = util.oprate(amount, config.rate, 'mul'); //语易数：人民币 10：1
+      let yuyi_num = util.oprate(amount, config.rate, 'mul') //语易数：人民币 10：1
       let time = moment().format('YYYY-MM-DD HH:mm:ss');
       let sql = `insert into Recharge values(null, "${userId}", "${orderNo}", "充值", "${amount}", "${yuyi_num}", 3, "${channel}", "${time}", "${charge.id}", "${charge.time_expire}", "${config.rate}");`;
       let ret = await db.excute(sql)
@@ -72,7 +72,7 @@ router.get('/charges',
     let page = ctx.query.page ? ctx.query.page : 1; //页码
     userId = ctx.query.userId ? ctx.query.userId : userId    
     let result = await middle.getPageInfoByMySql('Recharge', userId, page, size)
-    console.log('result-->' + JSON.stringify(result));
+    console.log('result-->' + JSON.stringify(result))
     ctx.body = {
       status: 200,
       data: result,
@@ -102,7 +102,7 @@ router.get('/retrieve',
         let time_expire = charge.time_expire; //charge对象过期时间
         if (curTime > time_expire) {
           //订单已过期，更改订单状态为4-订单过期
-          let orderNo = charge.order_no; //订单号
+          let orderNo = charge.order_no //订单号
           let sql = 'update Recharge set status = 4 where order_no = "' + orderNo + '" ';
           let result = await db.excute(sql)
           ctx.body = {
@@ -140,6 +140,7 @@ router.get('/wallet',
   async(ctx, next) => {
     try {
       let userId = ctx.decode.userId; //用户ID
+      let time = moment().format('YYYY-MM-DD HH:MM:SS')
       userId = ctx.query.userId ? ctx.query.userId : userId
       let sql = `select * from Wallet where userId="${userId}"`
       console.log(`sql ->${sql}`)
@@ -151,10 +152,14 @@ router.get('/wallet',
           msg: 'Successful'
         }
       } else {
+        let sql = `insert into Wallet values(null, "${userId}", 0, 0, 0, "${time}", "${time}")`
+        await db.excute(sql)
+        sql = `select * from Wallet where userId="${userId}"`
+        let ret = await db.excute(sql)
         ctx.body = {
-          status: 403,
-          data: {},
-          msg: '未注册钱包'
+          status: 200,
+          data: ret,
+          msg: 'success'
         }
       }
     } catch (err) {
@@ -181,7 +186,7 @@ router.get('/wallet',
         }
       }, (err, charge) => {
         if (err) {
-          reject(`pay pingCharges err--> ${err}`);
+          reject(`pay pingCharges err--> ${err}`)
         }
         resolve(charge)
       })
