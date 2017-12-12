@@ -39,9 +39,9 @@ router.post('/hooks', async(ctx, next) => {
         sql = `select * from Wallet where userId="${rechargeData[0].userId}"`
         let walletData = await db.excute(sql)
         if (!_.isEmpty(walletData)) {
-          console.log('----存在该用户的记录，更新amount----');
-          let amount = util.oprate(Number(walletData[0].amount), Number(rechargeData[0].amount), 'add');
-          let yuyi_num = util.oprate(Number(walletData[0].yuyi_num), Number(rechargeData[0].yuyi_num), 'add');
+          console.log('----存在该用户的记录，更新amount----')
+          let amount = util.oprate(Number(walletData[0].amount), Number(rechargeData[0].amount), 'add')
+          let yuyi_num = util.oprate(Number(walletData[0].yuyi_num), Number(rechargeData[0].yuyi_num), 'add')
           let sql = `update Wallet set amount="${amount}",yuyi_num="${yuyi_num}",updateTime="${time}" where id="${walletData[0].id}"`
           await db.excute(sql)
           let obj = {
@@ -55,7 +55,7 @@ router.post('/hooks', async(ctx, next) => {
           let d = await middle.walletRecord(obj)
           resp("OK", 200);
         } else {
-          console.log('----不存在该用户的记录，新增----');
+          console.log('----不存在该用户的记录，新增----')
           let sql = `insert into Wallet values(null, "${rechargeData[0].userId}", "${rechargeData[0].amount}", "${rechargeData[0].yuyi_num}", 0,  "${time}", "${time}")`
           let ret = await db.excute(sql)
           let obj = {

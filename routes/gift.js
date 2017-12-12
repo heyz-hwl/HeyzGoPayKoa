@@ -9,6 +9,7 @@ const util = require('../lib/util')
 const moment = require('moment')
 const log4js = require('koa-log4')
 const logger = log4js.getLogger('router')
+const giftMap = require('../lib/func').giftMap
 
 router.prefix('/v1')
 
@@ -71,15 +72,19 @@ const send = (senderId, receiverId, giftId, cost) => {
       let timeStamp = util.getTimeStamp()
       let orderNo = moment().format('YYYYMMDDHHmmss') + util.randomNum(4); //时分秒+4位随机数，组成订单号
       let giftData = giftMap[giftId]
+      console.log(`giftData ->${JSON.stringify(giftData)}`)
       cost = !_.isUndefined(cost) ? cost : giftData.costNum
       if (await ableToSend(senderId, cost)) {
+        let sql = `select * from Wallet where userId="${senderId}"`
+        let result = await db.excute(sql)
+        console.log(`result -> ${JSON.stringify(result)}`)
         if (giftId === '0') {
-          let amount = util.oprate(cost, config.rate, 'div'); //羽翼数：人民币 10：1      
-          let sql = `insert into YuyiConsume values(null, "${senderId}", "${receiverId}", "${orderNo}", "发红包", "${amount}", "${cost}", "${time}", "${config.rate}")`
+          let sql = `insert into YuyiConsume values(null, "${senderId}", "${receiverId}", "${orderNo}", "发红包", "${cost}", "${result[0].yuyi_num - cost}", "${time}", "${config.rate}")`
           let ret = await db.excute(sql)
         } else {
           let yuyiNum = util.oprate(giftData.costNum, config.rate, 'mul')
-          let sql = `insert into YuyiConsume values(null, "${senderId}", "${receiverId}", "${orderNo}", "送${giftData.name}礼物", "${giftData.costNum}", "${yuyiNum}", "${time}", "${config.rate}")`
+          let sql = `insert into YuyiConsume values(null, "${senderId}", "${receiverId}", "${orderNo}", "送${giftData.name}礼物", "${cost}", "${result[0].yuyi_num - giftData.costNum}", "${time}", "${config.rate}")`
+          console.log(`sql -> ${sql}`)
           let ret = await db.excute(sql)
         }
       } else {
@@ -98,7 +103,7 @@ const ableToSend = (senderId, cost) => {
     try {
       let sql = `select * from Wallet where userId="${senderId}"`
       let ret = await db.excute(sql)
-      if (ret[0].yuyi_num >= cost) {
+      if (!_.isEmpty(ret) && ret[0].yuyi_num >= cost) {
         sql = `update Wallet set yuyi_num="${ret[0].yuyi_num - cost}" where userId="${senderId}"`
         let result = await db.excute(sql)
         resolve(true)
@@ -110,18 +115,5 @@ const ableToSend = (senderId, cost) => {
     }
   })
 }
-
-const giftMap = [{
-  name: '红包'
-}, {
-  name: '爱心',
-  costNum: 100
-}, {
-  name: '爱心',
-  costNum: 100
-}, {
-  name: '爱心',
-  costNum: 100
-}]
 
 module.exports = router;

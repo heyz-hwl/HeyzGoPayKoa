@@ -17,9 +17,9 @@ router.post('/charges',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let amount = ctx.request.body.amount; //接收数据
+      let amount = ctx.request.body.amount;
       let userId = ctx.decode.userId
-      userId = ctx.query.userId ? ctx.query.userId : userId      
+      userId = ctx.request.body.userId ? ctx.request.body.userId : userId
       let amountPing = 0; //转换金额，为ping++ amount服务
       //检查必传参数是否存在
       if (!userId || !amount) {
@@ -45,12 +45,26 @@ router.post('/charges',
       //charge对象创建成功，往充值表插入数据
       let yuyi_num = util.oprate(amount, config.rate, 'mul') //语易数：人民币 10：1
       let time = moment().format('YYYY-MM-DD HH:mm:ss');
-      let sql = `insert into Recharge values(null, "${userId}", "${orderNo}", "充值", "${amount}", "${yuyi_num}", 3, "${channel}", "${time}", "${charge.id}", "${charge.time_expire}", "${config.rate}");`;
+      let sql = `select * from Wallet where userId="${userId}"`
+      let result = await db.excute(sql)
+      if (_.isEmpty(result)) {
+        sql = `insert into Recharge values(null, "${userId}", "${orderNo}", "充值", "${amount}", "${yuyi_num}", "${yuyi_num}", 3, "${channel}", "${time}", "${charge.id}", "${charge.time_expire}", "${config.rate}");`
+      } else {
+        sql = `insert into Recharge values(null, "${userId}", "${orderNo}", "充值", "${amount}", "${yuyi_num}", "${result[0].yuyi_num + yuyi_num}", 3, "${channel}", "${time}", "${charge.id}", "${charge.time_expire}", "${config.rate}");`
+      }
       let ret = await db.excute(sql)
-      return ctx.body = {
-        status: 200,
-        data: charge,
-        msg: 'Successful!'
+      if (!_.isEmpty(ret)) {
+        return ctx.body = {
+          status: 200,
+          data: charge,
+          msg: 'Successful!'
+        }
+      } else {
+        ctx.body = {
+          status: -1,
+          data: {},
+          msg: `未完成`
+        }
       }
     } catch (err) {
       ctx.body = {
@@ -69,7 +83,7 @@ router.get('/charges',
     let userId = ctx.decode.userId; //获取用户ID
     let size = ctx.query.size ? ctx.query.size : 10; //每页大小
     let page = ctx.query.page ? ctx.query.page : 1; //页码
-    userId = ctx.query.userId ? ctx.query.userId : userId    
+    userId = ctx.query.userId ? ctx.query.userId : userId
     let result = await middle.getPageInfoByMySql('Recharge', userId, page, size)
     console.log('result-->' + JSON.stringify(result))
     ctx.body = {
@@ -170,37 +184,38 @@ router.get('/wallet',
     }
   })
 
-  const pingCharges = (amountPing, orderNo, channel) => {
-    return new Promise((resolve, reject) => {
-      pingpp.charges.create({
-        subject: "充值",
-        body: "黑石传媒科技",
-        amount: amountPing, //订单总金额, 人民币单位：分（如订单总金额为 1 元，此处请填 100）
-        order_no: orderNo,
-        channel: channel,
-        currency: "cny",
-        client_ip: "127.0.0.1",
-        app: {
-          id: config.pingpp.appId
-        }
-      }, (err, charge) => {
-        if (err) {
-          reject(`pay pingCharges err--> ${err}`)
-        }
+const pingCharges = (amountPing, orderNo, channel) => {
+  return new Promise((resolve, reject) => {
+    pingpp.charges.create({
+      subject: "充值",
+      body: "黑石传媒科技",
+      amount: amountPing, //订单总金额, 人民币单位：分（如订单总金额为 1 元，此处请填 100）
+      order_no: orderNo,
+      channel: channel,
+      currency: "cny",
+      client_ip: "127.0.0.1",
+      app: {
+        id: config.pingpp.appId
+      }
+    }, (err, charge) => {
+      if (err) {
+        reject(`pay pingCharges err--> ${err}`)
+      } else {
         resolve(charge)
-      })
+      }
     })
-  }
+  })
+}
 
-  const pingRetrieve = (chargeId) => {
-    return new Promise(async(resolve, reject) => {
-      pingpp.charges.retrieve(chargeId, (err, charge) => {
-        if (err) {
-          reject(`pingRetrieve err -> ${err}`)
-        }
-        resolve(charge)
-      })
+const pingRetrieve = (chargeId) => {
+  return new Promise(async(resolve, reject) => {
+    pingpp.charges.retrieve(chargeId, (err, charge) => {
+      if (err) {
+        reject(`pingRetrieve err -> ${err}`)
+      }
+      resolve(charge)
     })
-  }  
+  })
+}
 
 module.exports = router;
