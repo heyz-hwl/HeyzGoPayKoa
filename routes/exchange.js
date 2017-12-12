@@ -14,6 +14,8 @@ const giftMap = require('../lib/func').giftMap
 
 router.prefix('/v1')
 
+//type === 0 提现
+//type === 1 兑换羽翼
 router.post('/exchange',
   jwt.verify,
   async(ctx, next) => {
@@ -120,7 +122,11 @@ router.get('/exchange',
       let option = ctx.query.option
       let ret = []
       if(order_name){
-      ret = await db.select(`YumaoConsume`, `userId="${userId}" and order_name="${order_name}"`, limit, skip, option)
+        if(order_name == 0){
+          ret = await db.select(`YumaoConsume`, `userId="${userId}" and order_name="提现"`, limit, skip, option)
+        } else if (order_name == 1){
+          ret = await db.select(`YumaoConsume`, `userId="${userId}" and order_name="兑换羽翼"`, limit, skip, option)          
+        }
       }else {
       ret = await await db.select(`YumaoConsume`, `userId="${userId}"`, limit, skip, option)
       }
