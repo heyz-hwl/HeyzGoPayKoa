@@ -131,8 +131,12 @@ router.get('/sendRecord',
       let limit = ctx.query.limit ? ctx.query.limit : 10
       let skip = ctx.query.skip ? ctx.query.skip : 0
       let option = ctx.query.option
-      let ret = await db.select(`YuyiConsume`, `"1==1"`, limit, skip)
-      console.log(`ret -> ${JSON.stringify(ret)}`)
+      let ret = []
+      if(option){
+        ret = await db.select(`YuyiConsume`, `"1==1"`, limit, skip, option)        
+      }else {
+        ret = await db.select(`YuyiConsume`, `"1==1"`, limit, skip)
+      }
       if(!_.isEmpty(ret)){
         ctx.body = {
           status: 200,
