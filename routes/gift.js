@@ -125,7 +125,7 @@ const ableToSend = (senderId, cost) => {
 
 //获取送礼记录
 router.get('/sendRecord', 
-  // jwt.verify,
+  jwt.verify,
   async(ctx, next) => {
     try {
       let limit = ctx.query.limit ? ctx.query.limit : 10
