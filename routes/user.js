@@ -12,6 +12,31 @@ const logger = log4js.getLogger('debug')
 
 router.prefix('/v1')
 
+//通过手机号查询用户信息
+router.get(`/user/infoByPhone`,
+  async(ctx, next) => {
+    try {
+      let phoneNumber = ctx.query.phoneNumber
+      let query = new AV.Query('_User')
+      query.equalTo('mobilePhoneNumber', phoneNumber)
+      let userInfo = await query.first()
+      if(!_.isUndefined(userInfo)){
+        ctx.body = {
+          status: 200,
+          data: util.getUserInfo(userInfo),
+          msg: `success`
+        }
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `get userInfo by phone number err ->${err}`
+      }
+    }
+  }
+)
+
 //拉黑用户
 router.post(`/user/blockList`,
   jwt.verify,
@@ -490,24 +515,24 @@ const getFollowList = (userId, limit, skip, type) => {
 }
 
 router.get('/user/friends',
-  jwt.verify, 
+  jwt.verify,
   async(ctx, next) => {
     try {
       let userId = ctx.decode.userId
-      if(ctx.query.userId){
+      if (ctx.query.userId) {
         userId = ctx.query.userId
       }
       let ret = await mutualFollow(userId)
       ctx.body = {
         status: 200,
         data: ret,
-        msg: `success`  
+        msg: `success`
       }
-    } catch(err) {
+    } catch (err) {
       ctx.body = {
         status: 1,
         data: {},
-        msg: `get friends err is ${err}` 
+        msg: `get friends err is ${err}`
       }
     }
   }
@@ -515,7 +540,7 @@ router.get('/user/friends',
 
 const mutualFollow = (userId) => {
   return new Promise(async(resolve, reject) => {
-    try{
+    try {
       let promise = []
       let user = AV.Object.createWithoutData('_User', userId)
       let query = new AV.Query('_Followee')
@@ -533,7 +558,7 @@ const mutualFollow = (userId) => {
             query.equalTo('followee', userObj)
             query.include('user')
             let mutual = await query.first()
-            if(mutual) {
+            if (mutual) {
               resolve(util.getUserInfo(mutual.get('user')))
             }
             resolve(null)
@@ -547,7 +572,7 @@ const mutualFollow = (userId) => {
         return item !== null
       })
       resolve(ret)
-    }catch(err) {
+    } catch (err) {
       reject(`mutualFollow err --->${err}`)
     }
   })

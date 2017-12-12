@@ -23,6 +23,13 @@ router.post('/sendGift',
       let receiverId = ctx.request.body.receiverId
       let giftId = ctx.request.body.giftId
       let ret = await send(senderId, receiverId, giftId)
+      if(!receiverId || !giftId){
+        return ctx.body = {
+          status: 1002,
+          data: {},
+          msg: 'Invalid parameter!'
+        }
+      }
       ctx.body = {
         status: 200,
         data: ret,
