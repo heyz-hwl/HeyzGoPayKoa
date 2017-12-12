@@ -14,6 +14,29 @@ const giftMap = require('../lib/func').giftMap
 
 router.prefix('/v1')
 
+router.get('/rate',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let rate = {
+        yuyi: 0.8,
+        rmb: 0.6
+      }
+      ctx.body = {
+        status: 200,
+        data: rate,
+        msg: `success`
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `rate err ->${err}`
+      }
+    }
+  }
+)
+
 //type === 0 提现
 //type === 1 兑换羽翼
 router.post('/exchange',
@@ -121,16 +144,16 @@ router.get('/exchange',
       let order_name = ctx.query.order_name
       let option = ctx.query.option
       let ret = []
-      if(order_name){
-        if(order_name == 0){
+      if (order_name) {
+        if (order_name == 0) {
           ret = await db.select(`YumaoConsume`, `userId="${userId}" and order_name="提现"`, limit, skip, option)
-        } else if (order_name == 1){
-          ret = await db.select(`YumaoConsume`, `userId="${userId}" and order_name="兑换羽翼"`, limit, skip, option)          
+        } else if (order_name == 1) {
+          ret = await db.select(`YumaoConsume`, `userId="${userId}" and order_name="兑换羽翼"`, limit, skip, option)
         }
-      }else {
-      ret = await await db.select(`YumaoConsume`, `userId="${userId}"`, limit, skip, option)
+      } else {
+        ret = await await db.select(`YumaoConsume`, `userId="${userId}"`, limit, skip, option)
       }
-      if(!_.isEmpty(ret)){
+      if (!_.isEmpty(ret)) {
         ctx.body = {
           status: 200,
           data: ret,
