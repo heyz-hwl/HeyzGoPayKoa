@@ -64,7 +64,7 @@ router.post('/exchange',
       ctx.body = {
         status: -1,
         data: {},
-        msg: `send gift err -> ${err}`
+        msg: `${err}`
       }
     }
   }
