@@ -78,7 +78,7 @@ const exchange = (userId, type, amount) => {
       let sql = `select * from Wallet where userId="${userId}"`
       let ret = await db.excute(sql)
       if (await isEnoughYumao(userId, amount)) {
-        if (type == 0) { //提现
+        if (type == '0') { //提现
           if (_.isEmpty(ret) || ret[0].yumao_num < 1667) {
             reject(`余额不足1667羽毛,不允许提现`)
           } else {
@@ -98,8 +98,12 @@ const exchange = (userId, type, amount) => {
           let result = await db.excute(sql)
           if (!_.isUndefined(result)) {
             sql = `insert into YumaoConsume values(null, "${userId}", "${orderNo}", "兑换羽翼", "${amount}", "${ret[0].yumao_num-amount}", "${nub}", "${time}", "${config.rate}")`
-            console.log(`sql ->${sql}`)
             result = await db.excute(sql)
+            if (!_.isUndefined(result)) {
+              let yuyi_num = Number(ret[0].yuyi_num) + Number(nub)
+              sql = `update Wallet set yuyi_num="${yuyi_num}" where userId="${userId}"`
+              result = await db.excute(sql)
+            }
             resolve(result)
           }
         }
@@ -118,10 +122,7 @@ const isEnoughYumao = (userId, amount) => {
     try {
       let sql = `select * from Wallet where userId="${userId}"`
       let ret = await db.excute(sql)
-      console.log(`ret2 -> ${JSON.stringify(ret[0].yumao_num >= amount)}`)
       if (!_.isEmpty(ret) && ret[0].yumao_num >= amount) {
-        sql = `update Wallet set yuyi_num="${ret[0].yumao_num - amount}" where userId="${userId}"`
-        let result = await db.excute(sql)
         resolve(true)
       } else {
         resolve(false)
