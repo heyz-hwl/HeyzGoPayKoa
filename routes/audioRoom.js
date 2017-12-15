@@ -23,10 +23,14 @@ router.post('/twoRoom',
         socket.sockets.connected[socketId[0].socketId].emit('phoneCall', reqData)
       } else{
         if(reqData.type == '1'){
+          let query = new AV.Query('_User')
+          query.equalTo('objectId', userId)
+          let user = await query.first()
+          let nickName = user.get('nickName')
           AV.Push.send({
             channels: [`${userId}`],
             data: {
-              alert: '找你语音啦!!',
+              alert: `${nickName}找你语音啦!!`,
             type: 1101,
             result: reqData
           }
