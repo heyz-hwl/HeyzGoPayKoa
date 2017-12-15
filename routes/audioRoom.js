@@ -19,9 +19,7 @@ router.post('/twoRoom',
       let reqData = ctx.request.body.data
       let sql = `select socketId from ConnectedUser where userId = "${userId}"`
       let socketId = await db.excute(sql)
-      console.log(`socketId ->${JSON.stringify(socketId[0].socketId)}`)
-      console.log(`socket.sockets.connected[socketId[0]] -> ${socket.sockets.connected[socketId[0].socketId]}`)
-      if (socket.sockets.connected[socketId[0].socketId]) {
+      if (!_.isEmpty(socketId)) {
         socket.sockets.connected[socketId[0].socketId].emit('phoneCall', reqData)
       } else{
         if(reqData.type == '1'){
