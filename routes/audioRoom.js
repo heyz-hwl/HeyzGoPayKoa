@@ -20,7 +20,9 @@ router.post('/twoRoom',
       let sql = `select socketId from ConnectedUser where userId = "${userId}"`
       let socketId = await db.excute(sql)
       if (socket.sockets.connected[socketId[0]]) {
-        socket.sockets.connected[socketId[0].socketId].emit('phoneCall', reqData)
+        if(reqData.type == 1){
+          socket.sockets.connected[socketId[0].socketId].emit('phoneCall', reqData)
+        }
       } else{
         AV.Push.send({
           channels: [`${userId}`],
