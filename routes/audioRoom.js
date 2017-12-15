@@ -20,19 +20,19 @@ router.post('/twoRoom',
       let sql = `select socketId from ConnectedUser where userId = "${userId}"`
       let socketId = await db.excute(sql)
       if (socket.sockets.connected[socketId[0]]) {
-        if(reqData.type == 1){
-          socket.sockets.connected[socketId[0].socketId].emit('phoneCall', reqData)
-        }
+        socket.sockets.connected[socketId[0].socketId].emit('phoneCall', reqData)
       } else{
-        AV.Push.send({
-          channels: [`${userId}`],
-          data: {
-            alert: '找你语音啦!!',
+        if(reqData.type == '1'){
+          AV.Push.send({
+            channels: [`${userId}`],
+            data: {
+              alert: '找你语音啦!!',
             type: 1101,
             result: reqData
           }
         })
       }
+    }
       return ctx.body = {
         status: 200,
         data: reqData,
