@@ -606,20 +606,20 @@ router.post('/user/wallet',
         }
       });
     }).then(v => {
-      ctx.body({
+      ctx.body = {
         status: 200,
         data: {},
         msg: 'success'
-      });
+      }
     }).catch(err => {
       console.log(`user/wallet err is ${err.stack ? err.stack : err}`);
-      ctx.body({
+      ctx.body = {
         status: -1,
         data: {},
         msg: err.stack ? err.stack : err
-      });
-    });
-  });
+      }
+    })
+  })
 
 //用户消费记录查询
 router.get('/user/consume',
