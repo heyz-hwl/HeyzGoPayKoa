@@ -15,6 +15,7 @@ router.post('/twoRoom',
   jwt.verify,
   async(ctx, next) => {
     try {
+      let senderId = ctx.decode.userId
       let userId = ctx.request.body.userId
       let reqData = ctx.request.body.data
       let sql = `select socketId from ConnectedUser where userId = "${userId}"`
@@ -24,7 +25,7 @@ router.post('/twoRoom',
       } else{
         if(reqData.type == '1'){
           let query = new AV.Query('_User')
-          query.equalTo('objectId', userId)
+          query.equalTo('objectId', senderId)
           let user = await query.first()
           let nickName = user.get('nickName')
           AV.Push.send({
