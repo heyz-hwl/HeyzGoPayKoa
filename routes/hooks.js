@@ -30,12 +30,14 @@ router.post('/hooks', async(ctx, next) => {
     }
     switch (event.type) {
       case "charge.succeeded":
-        //支付成功，更新充值表对应该订单的状态
-        let sql = `update Recharge set status = 1 where order_no="${event.data.object.order_no}"`
-        await db.excute(sql)
+      //支付成功，更新充值表对应该订单的状态
+      let sql = `select * from Recharge where order_no="${event.data.object.order_no}"`
+      let info = await db.excute(sql)
+      sql = `update Recharge set status = 1, yuyiNumBalance="${info[0].yuyiNumBalance+info[0].yuyi_num}" where order_no="${event.data.object.order_no}"`
+      let test = await db.excute(sql)
+      let rechargeSql = `select * from Recharge where order_no="${event.data.object.order_no}"`
+      let rechargeData = await db.excute(rechargeSql)
         //修改钱包金额
-        let rechargeSql = `select * from Recharge where order_no="${event.data.object.order_no}"`
-        let rechargeData = await db.excute(rechargeSql)
         sql = `select * from Wallet where userId="${rechargeData[0].userId}"`
         let walletData = await db.excute(sql)
         if (!_.isEmpty(walletData)) {
