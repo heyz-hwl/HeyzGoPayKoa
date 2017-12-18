@@ -189,7 +189,7 @@ const exchange = (userId, type, amount) => {
               let yuyi_num = Number(ret[0].yuyi_num) + Number(nub)
               sql = `update Wallet set yuyi_num="${yuyi_num}" where userId="${userId}"`
               result = await db.excute(sql)
-            } 
+            }
             resolve(result)
           }
         }
@@ -214,7 +214,7 @@ const pay = (openid, amount) => {
         partner_trade_no: ``,
         openid: openid,
         check_name: `NO_CHECK`,
-        amount: amount*100,
+        amount: amount * 100,
         desc: `提现`,
         spbill_create_ip: `120.24.14.130`
       }
@@ -257,6 +257,13 @@ router.get('/wxAuthorization',
   async(ctx, next) => {
     try {
       let code = ctx.query.code
+      if (_.isUndefined(code)) {
+        return ctx.body = {
+          status: -1,
+          data: {},
+          msg: `code missing`
+        }
+      }
       let time = moment().format('YYYY-MM-DD HH:MM:SS')
       let options = {
         url: `https://api.weixin.qq.com/sns/oauth2/access\_token`,
@@ -264,7 +271,7 @@ router.get('/wxAuthorization',
           appid: config.wxpt.appid,
           secret: config.wxpt.secret,
           code: code,
-          grant_type: authorization_code
+          grant_type: `authorization_code`
         },
         headers: {
           'User-Agent': 'Request-Promise'
@@ -278,7 +285,7 @@ router.get('/wxAuthorization',
         qs: {
           access_token: result.access_token,
           openid: result.openid,
-          lang: zh_CN
+          lang: `zh_CN`
         },
         headers: {
           'User-Agent': 'Request-Promise'
