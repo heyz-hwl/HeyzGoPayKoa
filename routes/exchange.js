@@ -256,7 +256,7 @@ const isEnoughYumao = (userId, amount) => {
 router.get('/wxAuthorization',
   async(ctx, next) => {
     try {
-      let code = ctx.query.code
+      let code = ctx.query.code || `authorization_code`
       if (_.isUndefined(code)) {
         return ctx.body = {
           status: -1,
@@ -279,7 +279,7 @@ router.get('/wxAuthorization',
         json: true
       }
       let result = await rp(options)
-      console.log(`access-token ->${result}`)
+      console.log(`access-token ->${JSON.stringify(result)}`)
       options = {
         url: `https://api.weixin.qq.com/sns/userinfo`,
         qs: {
@@ -305,7 +305,14 @@ router.get('/wxAuthorization',
       }
       */
       let ret = await rp(options)
-      console.log(`ret ->${ret}`)
+      if(_.isUndefined(_.get(ret, `unionid`, undefined))){
+        return ctx.body = {
+          status: -1,
+          data: {},
+          msg: `get code fail`
+        }
+      }
+      console.log(`ret ->${JSON.stringify(ret)}`)
       let query = new AV.Query('_User')
       query.equalTo('wxUid', ret.unionid)
       let uesr = await query.first()
