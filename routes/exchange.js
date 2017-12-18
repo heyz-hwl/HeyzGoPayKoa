@@ -172,8 +172,8 @@ const exchange = (userId, type, amount) => {
               let result = await db.excute(sql)
               if (!_.isUndefined(result)) {
                 sql = `insert into YumaoConsume values(null, "${userId}", "${orderNo}", "提现", "${amount}", "${ret[0].yumao_num-amount}", "${nub}", "${time}", "${config.rate}")`
-                await db.excute(sql)
-                result = await pay(wxUserInfo[0].openid, nub)
+                result = await db.excute(sql)
+                // result = await pay(wxUserInfo[0].openid, nub)
                 resolve(result)
               }
             }
@@ -189,7 +189,7 @@ const exchange = (userId, type, amount) => {
               let yuyi_num = Number(ret[0].yuyi_num) + Number(nub)
               sql = `update Wallet set yuyi_num="${yuyi_num}" where userId="${userId}"`
               result = await db.excute(sql)
-            }
+            } 
             resolve(result)
           }
         }
@@ -208,15 +208,15 @@ const pay = (openid, amount) => {
     try {
       let data = {
         mch_appid: config.wxpt.appid,
-        mchid: ``,
+        mchid: config.wxpt.mchid,
         nonce_str: ``,
         sign: ``,
         partner_trade_no: ``,
         openid: openid,
         check_name: `NO_CHECK`,
-        amount: amount,
+        amount: amount*100,
         desc: `提现`,
-        spbill_create_ip: ``
+        spbill_create_ip: `120.24.14.130`
       }
       let options = {
         method: 'POST',
@@ -225,11 +225,11 @@ const pay = (openid, amount) => {
         json: true
       }
       let ret = await rp(options)
-      if(ret){
+      if (ret) {
         resolve(ret)
       }
       reject(`err`)
-    }catch(err){
+    } catch (err) {
       reject(`pay err => ${err}`)
     }
   })
@@ -272,6 +272,7 @@ router.get('/wxAuthorization',
         json: true
       }
       let result = await rp(options)
+      console.log(`access-token ->${result}`)
       options = {
         url: `https://api.weixin.qq.com/sns/userinfo`,
         qs: {
@@ -286,7 +287,7 @@ router.get('/wxAuthorization',
       }
       /* ret form
       {   "openid":" OPENID",
-          " nickname": NICKNAME,
+          "nickname": NICKNAME,
           "sex":"1",
           "province":"PROVINCE"
           "city":"CITY",
@@ -297,6 +298,7 @@ router.get('/wxAuthorization',
       }
       */
       let ret = await rp(options)
+      console.log(`ret ->${ret}`)
       let query = new AV.Query('_User')
       query.equalTo('wxUid', ret.unionid)
       let uesr = await query.first()
@@ -314,7 +316,7 @@ router.get('/wxAuthorization',
           return ctx.body = {
             status: -1,
             data: {},
-            msg: `data err`
+            msg: `data err ->${err}`
           }
         } else {
           ctx.body = {
@@ -335,10 +337,17 @@ router.get('/wxAuthorization',
 )
 
 //验证手机号
-router.post('/verifyNub',
+router.post('/verifyPhoneNub',
   async(ctx, next) => {
     try {
       let phoneNub = ctx.request.body.phoneNub
+      if (!phoneNub) {
+        return ctx.body = {
+          status: 1001,
+          data: {},
+          msg: `params missing`
+        }
+      }
       let query = new AV.Query('_User')
       query.equalTo('mobilePhoneNumber', phoneNub)
       let user = await query.first()
