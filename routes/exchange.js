@@ -152,6 +152,16 @@ router.post('/exchange',
 const exchange = (userId, type, amount) => {
   return new Promise(async(resolve, reject) => {
     try {
+      //检查金额是否合法（为数字且大于或等于0.1元且小于等于1亿）
+      if (util.isNumber(amount) && amount >= 0.01 && amount <= 100000000) {
+        amountPing = amount * 100;
+      } else {
+        return ctx.body = {
+          status: 1002,
+          data: {},
+          msg: 'Invalid parameter!'
+        }
+      }
       let orderNo = moment().format('YYYYMMDDHHmmss') + util.randomNum(4);
       let time = moment().format('YYYY-MM-DD HH:MM:SS')
       let sql = `select * from Wallet where userId="${userId}"`
@@ -173,7 +183,8 @@ const exchange = (userId, type, amount) => {
               if (!_.isUndefined(result)) {
                 sql = `insert into YumaoConsume values(null, "${userId}", "${orderNo}", "提现", "${amount}", "${ret[0].yumao_num-amount}", "${nub}", "${time}", "${config.rate}")`
                 result = await db.excute(sql)
-                // result = await pay(wxUserInfo[0].openid, nub)
+                sql = `insert into Withdrawal values(null, "${userId}", "${orderNo}", "提现", "${amount}", "${yumao_num}", "${ret[0].yumao_num-amount}", 3, "${channel}", "${time}", "${time}", "6");`
+                await db.excute(sql)
                 resolve(result)
               }
             }
@@ -206,17 +217,18 @@ const exchange = (userId, type, amount) => {
 const pay = (openid, amount) => {
   return new Promise(async(resolve, reject) => {
     try {
+      let orderNo = moment().format('YYYYMMDDHHmmss') + util.randomNum(4);
       let data = {
         mch_appid: config.wxpt.appid,
         mchid: config.wxpt.mchid,
         nonce_str: ``,
         sign: ``,
-        partner_trade_no: ``,
+        partner_trade_no: orderNo,
         openid: openid,
         check_name: `NO_CHECK`,
         amount: amount * 100,
         desc: `提现`,
-        spbill_create_ip: `120.24.14.130`
+        spbill_create_ip: `112.74.40.136`
       }
       let options = {
         method: 'POST',
@@ -305,7 +317,7 @@ router.get('/wxAuthorization',
       }
       */
       let ret = await rp(options)
-      if(_.isUndefined(_.get(ret, `unionid`, undefined))){
+      if (_.isUndefined(_.get(ret, `unionid`, undefined))) {
         return ctx.body = {
           status: -1,
           data: {},
@@ -351,7 +363,7 @@ router.get('/wxAuthorization',
 )
 
 //验证手机号
-router.post('/verifyPhoneNub',
+router.post('/withdrawalUserInfo',
   async(ctx, next) => {
     try {
       let phoneNub = ctx.request.body.phoneNub
@@ -372,9 +384,16 @@ router.post('/verifyPhoneNub',
           msg: `未注册`
         }
       } else {
+        let sql = `select * from Wallet where userId="${user.get('objectId')}"`
+        let ret = await db.excute(sql)
+        console.log(`ret => ${JSON.stringify(ret)}`)
+        let result = util.getUserInfo(user)
+        console.log(`result => ${JSON.stringify(result)}`)        
+        result.amount = util.oprate(ret[0].yumao_num, 0.6, 'mul')
+        console.log(`result2 => ${JSON.stringify(result)}`)        
         ctx.body = {
           status: 200,
-          data: util.getUserInfo(user),
+          data: result,
           msg: `success`
         }
       }
