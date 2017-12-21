@@ -386,6 +386,13 @@ router.post('/withdrawalUserInfo',
       } else {
         let sql = `select * from Wallet where userId="${user.get('objectId')}"`
         let ret = await db.excute(sql)
+        if(!ret){
+          ctx.body = {
+            status: -1,
+            data: {},
+            msg: `请先在 App 内注册钱包`
+          }
+        }
         console.log(`ret => ${JSON.stringify(ret)}`)
         let result = util.getUserInfo(user)
         console.log(`result => ${JSON.stringify(result)}`)        
