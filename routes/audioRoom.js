@@ -1007,8 +1007,11 @@ router.post('/audio/room',
           msg: `该用户已在${result.roomNub}聊天室内`
         }
       }
+      let conversation = AV.Object.new('_Conversation')
+      let conv = await conversation.save()
       let file = AV.Object.createWithoutData('_File', '5a041363a22b9d00629c7250')
       let file2 = AV.Object.createWithoutData('_File', '5a041467a22b9d00629c8549')
+      audioRoom.set('conversation', conv)
       audioRoom.set('background', file)
       audioRoom.set('icon', file2)
       let roomNub = await makeRoomNumber()
@@ -1020,13 +1023,13 @@ router.post('/audio/room',
       let query1 = new AV.Query('_User')
       query1.equalTo('objectId', owner)
       let user = await query1.first()
-      if (user.get('level') < 1) {
-        return ctx.body = {
-          status: 403,
-          data: {},
-          msg: `需要6级才能创建房间`
-        }
-      }
+      // if (user.get('level') < 1) {
+      //   return ctx.body = {
+      //     status: 403,
+      //     data: {},
+      //     msg: `需要6级才能创建房间`
+      //   }
+      // }
       let levelGrade = user.get('level') * 1
       audioRoom.set('grade', levelGrade)
       let room = await audioRoom.save()
@@ -1247,6 +1250,8 @@ router.post('/audio/userLeave',
         if (result.get('owner') == userId) {
           // 作为房主退出房间
           if (_.get(member, 'length', 0) == 0) { // 并且房内已经没有成员
+            let conversation = room.get('conversation')
+            await conversation.destroy()
             let v = await room.destroy()
             return ctx.body = {
               status: 201,
