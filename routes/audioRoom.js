@@ -1008,6 +1008,7 @@ router.post('/audio/room',
         }
       }
       let conversation = AV.Object.new('_Conversation')
+      conversation.set('tr', true)
       let conv = await conversation.save()
       let file = AV.Object.createWithoutData('_File', '5a041363a22b9d00629c7250')
       let file2 = AV.Object.createWithoutData('_File', '5a041467a22b9d00629c8549')
