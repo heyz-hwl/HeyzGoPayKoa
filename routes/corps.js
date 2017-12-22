@@ -69,7 +69,7 @@ router.post('/corps',
 
 //获取战队邀请列表
 router.get('/inviteList',
-  // jwt.verify,
+  jwt.verify,
   async(ctx, next) => {
     try {
       let corpsId = ctx.query.corpsId
@@ -115,37 +115,37 @@ router.get('/inviteList',
   }
 )
 
-//创建战队时邀请人
-router.post('/inviteList',
-  // jwt.verify,
+//邀请加入战队
+router.post('/invite',
+  jwt.verify,
   async(ctx, next) => {
     try {
       let time = moment().format('YYYY-MM-DD HH:MM:SS')
       let userIdList = ctx.request.body.userIdList
       let corpsId = ctx.request.body.corpsId
-      let inviterId = ctx.request.body.inviterId
+      let inviterId = ctx.decode.userId
       let promise = []
       userIdList.forEach(async(userId, index) => {
         promise.push(new Promise(async(resolve, reject) => {
           try {
-            let sql = `insert into CorpsInvite values(null, "${corpsId}", "${inviterId}", "${userId}", ${false}, "${time}")`
+            let sql = `insert into CorpsInvite values(null, "${corpsId}", "${inviterId}", "${userId}", ${false}, "${time}", null)`
             let ret = await db.excute(sql)
             resolve(ret)
           } catch (err) {
             reject(err)
           }
         }))
-        let retArr = await Promise.all(promise)
-        if (!retArr) {
-          throw new Error(`insert err`)
-        } else {
-          ctx.body = {
-            status: 200,
-            data: retArr,
-            msg: `success`
-          }
-        }
       })
+      let retArr = await Promise.all(promise)
+      if (!retArr) {
+        throw new Error(`insert err`)
+      } else {
+        ctx.body = {
+          status: 200,
+          data: retArr,
+          msg: `success`
+        }
+      }
     } catch (err) {
       ctx.body = {
         status: -1,
@@ -162,7 +162,7 @@ router.get('/corps',
   async(ctx, next) => {
     try {
       let corpsId = ctx.query.corpsId
-      let userType = ctx.query.type
+      let userType = ctx.query.userType
       let ret = await getCorpsInfo(corpsId, userType)
       ctx.body = {
         status: 200,
@@ -185,7 +185,7 @@ router.get('/acceptInvite',
   async(ctx, next) => {
     try {
       let userId = ctx.query.userId
-      let inviteId = ctx.query.inviterId
+      let inviteId = ctx.query.inviteId
       let corpsId = ctx.query.corpsId
       let time = moment().format('YYYY-MM-DD HH:MM:SS')
       let sql = `update CorpsInvite set isPass = 1 where id="${inviteId}"`
@@ -210,17 +210,16 @@ router.get('/acceptInvite',
 )
 
 router.get('/allCorps',
-  // jwt.verify,
+  jwt.verify,
   async(ctx, next) => {
     try {
-      let limit = ctx.query.limit ? ctx.query.limit : 5
+      let limit = ctx.query.limit ? ctx.query.limit : 10
       let skip = ctx.query.skip ? ctx.query.skip : 0
       let sql = `select * from CorpsInfo where isPass=${true} limit ${skip}, ${limit}`
       let cinfo = await db.excute(sql)
       let promise1 = []
       cinfo.forEach((corps, index) => {
         promise1.push(new Promise(async(resolve, reject) => {
-          // console.log(`corps->${JSON.stringify(corps)}`)
           let ret = await getCorpsInfo(corps.id, undefined)
           resolve(ret)
         }))
