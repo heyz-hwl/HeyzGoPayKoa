@@ -1117,6 +1117,7 @@ router.get('/audio/rooms',
       }
       query.include('background')
       query.include('icon')
+      query.include('conversation')
       query.addDescending('grade')
       query.limit(limit)
       query.skip(skip)
@@ -1127,6 +1128,7 @@ router.get('/audio/rooms',
             let userInfo = await getRoomUserInfo(room)
             let data = {
               roomId: room.get('objectId'),
+              conversationId: room.get('conversation').get('conversationId'),
               title: room.get('title'),
               roomNub: room.get('roomNub'),
               number: room.get('member').length + 1,
