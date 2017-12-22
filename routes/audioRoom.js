@@ -1128,7 +1128,7 @@ router.get('/audio/rooms',
             let userInfo = await getRoomUserInfo(room)
             let data = {
               roomId: room.get('objectId'),
-              conversationId: room.get('conversation').get('conversationId'),
+              conversationId: room.get('conversation').get('objectId'),
               title: room.get('title'),
               roomNub: room.get('roomNub'),
               number: room.get('member').length + 1,
