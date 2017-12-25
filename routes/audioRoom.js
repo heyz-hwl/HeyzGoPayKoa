@@ -1253,7 +1253,8 @@ router.post('/audio/userLeave',
         if (result.get('owner') == userId) {
           // 作为房主退出房间
           if (_.get(member, 'length', 0) == 0) { // 并且房内已经没有成员
-            let conversation = room.get('conversation')
+            let conversation = result.get('conversation')
+            console.log(`conversation -> ${JSON.stringify(conversation)}`)
             await conversation.destroy()
             let v = await room.destroy()
             return ctx.body = {
