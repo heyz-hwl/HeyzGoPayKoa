@@ -33,6 +33,17 @@ router.post('/register', async(ctx, next) => {
     }
   }
 
+  let query = new AV.Query(`_User`)
+  query.equalTo(`mobilePhoneNumber`, phone)
+  let user = await query.first()
+  if(!user){
+    return ctx.body = {
+      status: -1,
+      data: {},
+      msg: `未注册用户`
+    }
+  }
+
   let register = AV.Object.new(`CompeteRegister`)
   register.set('phone', phone)
   register.set('corpsName', corpsName)
