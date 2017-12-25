@@ -12,15 +12,12 @@ router.prefix('/v1')
 router.post('/register', async(ctx, next) => {
   let {
     phone,
-    nickName,
-    gender,
-    type,
-    isWechat,
-    level,
-    wechat
+    wechat,
+    corpsName,
+    type
   } = ctx.request.body
 
-  if (!phone || !nickName || !gender || !type || !isWechat || !level || !wechat) {
+  if (!phone || !corpsName || !wechat || !type) {
     return ctx.body = {
       status: 403,
       data: {},
@@ -37,12 +34,9 @@ router.post('/register', async(ctx, next) => {
   }
 
   let register = AV.Object.new(`CompeteRegister`)
-  register.set('gender', gender)
   register.set('phone', phone)
-  register.set('nickName', nickName)
+  register.set('corpsName', corpsName)
   register.set('type', type)
-  register.set('isWechat', isWechat)
-  register.set('level', level)
   register.set('wechat', wechat)
   let ret = await register.save()
   console.log(`ret is ${JSON.stringify(ret)}`)
