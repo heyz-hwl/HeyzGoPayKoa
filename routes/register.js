@@ -9,7 +9,7 @@ const logger = log4js.getLogger('router')
 
 router.prefix('/v1')
 
-router.post('/register', 
+router.post('/register',
   async(ctx, next) => {
     try {
       let {
@@ -18,7 +18,7 @@ router.post('/register',
         corpsName,
         type
       } = ctx.request.body
-    
+
       if (!phone || !corpsName || !wechat || !type) {
         return ctx.body = {
           status: 403,
@@ -26,7 +26,7 @@ router.post('/register',
           msg: `params missing`
         }
       }
-    
+
       if (!(/^1[34578]\d{9}$/.test(phone))) {
         return ctx.body = {
           status: 403,
@@ -34,18 +34,18 @@ router.post('/register',
           msg: `wrong phone number`
         }
       }
-    
+
       let query = new AV.Query(`_User`)
       query.equalTo(`mobilePhoneNumber`, phone)
       let user = await query.first()
-      if(!user){
+      if (!user) {
         return ctx.body = {
           status: -1,
           data: {},
           msg: `未注册用户`
         }
       }
-    
+
       let register = AV.Object.new(`CompeteRegister`)
       register.set('phone', phone)
       register.set('corpsName', corpsName)
@@ -53,38 +53,41 @@ router.post('/register',
       register.set('wechat', wechat)
       let ret = await register.save()
       console.log(`ret is ${JSON.stringify(ret)}`)
-      if (ret) {
-        ctx.body = {
-          status: 200,
-          data: ret,
-          msg: `success`
-        }
+      ctx.body = {
+        status: 200,
+        data: ret,
+        msg: `success`
       }
-    } catch(err){
+    } catch (err) {
       ctx.body = {
         status: -1,
         data: {},
         msg: `post register err ->${err}`
       }
     }
-})
+  })
 
 router.get('/register', async(ctx, next) => {
-  let {
-    time
-  } = ctx.request.body
-  let thisWeek = moment().format('YYYY-MM-DD')
-  let lastWeek = moment().subtract(7, 'day')
-  let query = new AV.Query('CompeteRegister')
-  query.lessThanOrEqualTo('createAt', new Date(thisWeek))
-  query.greaterThanOrEqualTo('createAt', new Date(lastWeek))
-  query.addDescending('createAt')
-  let ret = await query.find()
-  if (ret) {
+  try {
+    let thisWeek = new Date(moment().add(1, 'day'))
+    let lastWeek = new Date(moment().subtract(Number(moment().day()), 'day'))
+    console.log(`thisWeek ->${thisWeek} lastWeek ->${lastWeek}`)
+    let query = new AV.Query('CompeteRegister')
+    query.lessThanOrEqualTo('createdAt', new Date())
+    query.greaterThanOrEqualTo('createdAt', lastWeek)
+    query.addDescending('createAt')
+    console.log(`query ->${JSON.stringify(query)}`)
+    let ret = await query.find()
     ctx.body = {
       status: 200,
       data: ret,
       msg: `success`
+    }
+  } catch (err) {
+    ctx.body = {
+      status: -1,
+      data: {},
+      msg: `get register err ->${err}`
     }
   }
 })
