@@ -69,14 +69,12 @@ router.post('/register',
 
 router.get('/register', async(ctx, next) => {
   try {
-    let thisWeek = new Date(moment().add(1, 'day'))
-    let lastWeek = new Date(moment().subtract(Number(moment().day()), 'day'))
-    console.log(`thisWeek ->${thisWeek} lastWeek ->${lastWeek}`)
+    // let thisWeek = new Date(moment().add(1, 'day'))
+    // let lastWeek = new Date(moment().subtract(Number(moment().day()), 'day'))
     let query = new AV.Query('CompeteRegister')
-    query.lessThanOrEqualTo('createdAt', new Date())
-    query.greaterThanOrEqualTo('createdAt', lastWeek)
+    // query.lessThanOrEqualTo('createdAt', new Date())
+    // query.greaterThanOrEqualTo('createdAt', lastWeek)
     query.addDescending('createAt')
-    console.log(`query ->${JSON.stringify(query)}`)
     let ret = await query.find()
     ctx.body = {
       status: 200,
