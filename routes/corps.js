@@ -310,4 +310,155 @@ router.post('/corps/apply',
   }
 )
 
+//队长(position == 1)需要在把战队所有成员 T 出房间后才能退出(解散战队)
+//普通成员(position == 0)只要执行者是自己或者队长,就直接退出房间
+router.delete('/member',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let userId = ctx.decode.userId //执行者 ID 以后做权限管理
+      let memberId = ctx.request.body.memberId //要退出的成员 ID
+      let corpsId = ctx.request.body.corpsId
+      if (!memberId || !corpsId) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `params missing`
+        }
+      }
+      let sql = `select * from CorpsMember where memberId="${userId}"`
+      let dbUserId = await db.excute(sql)
+      if (dbUserId[0].position === '1') { //是队长
+        if (memberId == userId) { //是不是自己退出战队
+          if (corpsInfo.length > 1) { //战队还有人
+            return ctx.body = {
+              status: 403,
+              data: {},
+              msg: `战队还有其他成员`
+            }
+          } else { //战队没人,解散战队
+            await deleteCorps(corpsId)
+            return ctx.body = {
+              status: 200,
+              data: {},
+              msg: `战队没有人,已经被删除`
+            }
+          }
+        } else { //队长 T 人
+          //这里以后要做战队事件记录
+          let sql = `delete from CorpsMember where memberId="${memberId}"`
+          let ret = await db.excute(sql)
+          if (ret) {
+            ctx.body = {
+              status: 200,
+              data: ret,
+              msg: `success`
+            }
+          }
+        }
+      } else { //不是队长
+        if (userId == memberId) { //是不是自己退出战队
+          //这里以后要做战队事件记录
+          let sql = `delete from CorpsMember where memberId="${memberId}"`
+          let ret = await db.excute(sql)
+          if (ret) {
+            ctx.body = {
+              status: 200,
+              data: ret,
+              msg: `success`
+            }
+          }
+        } else { //普通成员 T 人
+          return ctx.body = {
+            status: -1,
+            data: {},
+            msg: `没有这个权限`
+          }
+        }
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `remove member err ->${err}`
+      }
+    }
+  }
+)
+
+//修改战队信息
+router.put('/corpsInfo',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let {
+        corpsId,
+        icon,
+        corpsName,
+        declare
+      } = ctx.request.body
+      let flag = 0
+      let sql = `update CorpsInfo set `
+      if (icon) {
+        sql += `icon="${icon}" `
+        flag++
+      }
+      if (corpsName) {
+        if (flag) {
+          sql += `, corpsName="${corpsName}"`
+        } else {
+          sql += `corpsName="${corpsName}"`
+          flag++
+        }
+      }
+      if (declare) {
+        if (flag) {
+          sql += `, declare="${declare}}"`
+        } else {
+          sql += `declare="${declare}}"`
+          flag++
+        }
+      }
+      sql += `where id="${corpsId}"`
+      console.log(`sql ->${sql}`)
+      let ret = await db.excute(sql)
+      if (ret) {
+        ctx.body = {
+          status: 200,
+          data: ret,
+          msg: `success`
+        }
+      } else {
+        throw new Error(`db err`)
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `update corpsInfo err ->${err}`
+      }
+    }
+  }
+)
+
+//删除整个战队所有消息
+const deleteCorps = (corpsId) => {
+  return new Promise(async(resolve, reject) => {
+    try {
+      let sql = `delete CorpsMember where corpsId="${corpsId}"`
+      await db.excute(sql)
+      sql = `delete CorpsInfo where id="${corpsId}"`
+      await db.excute(sql)
+      sql = `delete CorpsInvite where corpsId="${corpsId}"`
+      await db.excute(sql)
+      sql = `delete CorpsActive where corpsId="${corpsId}"`
+      await db.excute(sql)
+      sql = `delete CorpsEvent where corpsId="${corpsId}"`
+      await db.excute(sql)
+    } catch (err) {
+      reject(`deleteCorps err ->${err}`)
+    }
+  })
+}
+
 module.exports = router
