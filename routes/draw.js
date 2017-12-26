@@ -583,6 +583,17 @@ router.get('/draw/record',
   }
 )
 
+router.get(`/drawGradeInfo`,
+  async(ctx, next) => {
+    const arr = [60, 200, 400, 600, 1000]
+    ctx.body = {
+      status: 200,
+      data: arr,
+      msg: `success`
+    }
+  }
+)
+
 //获取抽奖信息
 router.get('/drawInfo',
   jwt.verify,
