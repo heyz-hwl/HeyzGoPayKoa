@@ -291,6 +291,9 @@ router.put('/user',
     try {
       let userId = ctx.decode.userId; //获取用户ID
       let avatarId = ctx.request.body.avatarId; //头像图片ID
+      let nickName = ctx.request.body.nickName; //昵称
+      let gender = ctx.request.body.gender //性别 1男 2女
+      let profile = ctx.request.body.profile; //个性签名
       if (avatarId) {
         //设置用户头像
         console.log('start avatarId-->');
@@ -309,9 +312,6 @@ router.put('/user',
         });
       } else {
         console.log('no nothing-->');
-        let nickName = ctx.body.request.nickName; //昵称
-        let gender = ctx.request.body.gender //性别 1男 2女
-        let profile = ctx.body.profile; //个性签名
         let user = AV.Object.createWithoutData("_User", userId);
         if (nickName) {
           user.set('nickName', nickName);
