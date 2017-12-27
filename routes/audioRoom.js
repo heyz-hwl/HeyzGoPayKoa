@@ -1181,7 +1181,7 @@ router.post('/audio/user',
       let member = result.get('member')
       if (!_.isEmpty(data)) {
         return ctx.body = {
-          status: 403,
+          status: 1000,
           data: {},
           msg: `你已在${data.roomNub}房间内`
         }
