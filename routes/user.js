@@ -324,7 +324,7 @@ router.put('/user',
         if (profile) {
           user.set('profile', profile);
         }if(height){
-          user.set(`height`, height)
+          user.set(`height`, Number(height))
         }if(birthday){
           user.set(`birthday`, Date(birthday))
         }
