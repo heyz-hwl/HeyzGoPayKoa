@@ -18,7 +18,7 @@ router.post('/follow',
     try {
       let userId = ctx.decode.userId //请求者
       let toUserId = ctx.request.body.toUserId //被关注的人
-      let sessionToken = ctx.request.body.sessionToken
+      let sessionToken = ctx.request.sessionToken
       let data = {}
       if (!userId || !toUserId) {
         return ctx.body = {
