@@ -296,22 +296,18 @@ router.put('/user',
       let profile = ctx.request.body.profile; //个性签名
       let height = ctx.request.body.height
       let birthday = ctx.request.body.birthday
+      console.log(`birthday->${birthday}`)
+      console.log(`Number(birthday)*1000 ->${Number(birthday)*1000}`)
+      console.log(`new Date(Number(birthday)*1000) ->${new Date(Number(birthday)*1000)}`)
       if (avatarId) {
         //设置用户头像
         console.log('start avatarId-->');
-        middle.authByFileId(userId, avatarId, 'avatarId').then(v => {
-          return ctx.body({
+        await middle.authByFileId(userId, avatarId, 'avatarId')
+          return ctx.body = {
             status: 200,
             data: {},
             msg: 'success'
-          });
-        }).catch(err => {
-          return ctx.body({
-            status: -1,
-            data: {},
-            msg: err
-          });
-        });
+          }
       } else {
         console.log('no nothing-->');
         let user = AV.Object.createWithoutData("_User", userId);
