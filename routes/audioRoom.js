@@ -1178,6 +1178,15 @@ router.post('/audio/user',
         }
       }
       let member = result.get('member')
+      if(!_.isUndefined(data)){
+        if(data.get('member').include(userId) || data.get('owner') == userId){
+          return ctx.body = {
+            status: 403,
+            data: {},
+            msg: `你已在${data.get('roomNub')}房间内`
+          }
+        }
+      }
       if (member.indexOf(userId) > -1 || userId == result.get('owner')) {
         return ctx.body = {
           status: 403,
