@@ -326,7 +326,7 @@ router.put('/user',
         }if(height){
           user.set(`height`, Number(height))
         }if(birthday){
-          user.set(`birthday`, Date(birthday))
+          user.set(`birthday`, new Date(birthday))
         }
         await user.save()
         ctx.body = {
