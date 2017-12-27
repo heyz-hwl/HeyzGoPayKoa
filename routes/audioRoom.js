@@ -23,8 +23,8 @@ router.post('/twoRoom',
       console.log(`socketId -> ${JSON.stringify(socketId)}`)
       if (!_.isEmpty(socketId)) {
         socket.sockets.connected[socketId[0].socketId].emit('phoneCall', reqData)
-      } else{
-        if(reqData.type == '1'){
+      } else {
+        if (reqData.type == '1') {
           let query = new AV.Query('_User')
           query.equalTo('objectId', senderId)
           let user = await query.first()
@@ -33,12 +33,12 @@ router.post('/twoRoom',
             channels: [`${userId}`],
             data: {
               alert: `${nickName}找你语音啦!!`,
-            type: 1101,
-            result: reqData
-          }
-        })
+              type: 1101,
+              result: reqData
+            }
+          })
+        }
       }
-    }
       return ctx.body = {
         status: 200,
         data: reqData,
@@ -114,7 +114,7 @@ router.post('/bigRoom/user',
       }
       let time = moment().format('YYYY-MM-DD HH:mm:ss')
       let userId = ctx.decode.userId
-      if(ctx.request.body.userId){
+      if (ctx.request.body.userId) {
         userId = ctx.request.body.userId
       }
       let sql = `insert into UserBigRoom values(null,"${roomId}","${userId}","${time}")`
@@ -1167,6 +1167,7 @@ router.post('/audio/user',
       let roomId = ctx.request.body.roomId
       let numberLimit = 9
       let data = await userRoom(userId)
+      console.log(`data ->${JSON.stringify(data)}`)
       let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId)
       let result = await query.first()
@@ -1178,13 +1179,11 @@ router.post('/audio/user',
         }
       }
       let member = result.get('member')
-      if(!_.isUndefined(data)){
-        if(data.get('member').include(userId) || data.get('owner') == userId){
-          return ctx.body = {
-            status: 403,
-            data: {},
-            msg: `你已在${data.get('roomNub')}房间内`
-          }
+      if (!_.isEmpty(data)) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `你已在${data.roomNub}房间内`
         }
       }
       if (member.indexOf(userId) > -1 || userId == result.get('owner')) {
