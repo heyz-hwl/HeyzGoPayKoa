@@ -294,6 +294,8 @@ router.put('/user',
       let nickName = ctx.request.body.nickName; //昵称
       let gender = ctx.request.body.gender //性别 1男 2女
       let profile = ctx.request.body.profile; //个性签名
+      let height = ctx.request.body.height
+      let birthday = ctx.request.body.birthday
       if (avatarId) {
         //设置用户头像
         console.log('start avatarId-->');
@@ -321,6 +323,10 @@ router.put('/user',
         }
         if (profile) {
           user.set('profile', profile);
+        }if(height){
+          user.set(`height`, height)
+        }if(birthday){
+          user.set(`birthday`, birthday)
         }
         await user.save()
         ctx.body = {
