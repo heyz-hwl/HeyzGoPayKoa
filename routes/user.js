@@ -315,7 +315,7 @@ router.put('/user',
           user.set('nickName', nickName);
         }
         if (gender) {
-          user.set('gender', gender);
+          user.set('gender', Number(gender));
         }
         if (profile) {
           user.set('profile', profile);
