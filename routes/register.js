@@ -49,7 +49,7 @@ router.post('/register',
       let register = AV.Object.new(`CompeteRegister`)
       register.set('phone', phone)
       register.set('corpsName', corpsName)
-      register.set('type', Array(type))
+      register.set('type', type)
       register.set('wechat', wechat)
       let ret = await register.save()
       console.log(`ret is ${JSON.stringify(ret)}`)
