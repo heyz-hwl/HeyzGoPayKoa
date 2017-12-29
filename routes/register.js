@@ -27,7 +27,7 @@ router.post('/register',
         }
       }
 
-      if (!(/^1[34578]\d{9}$/.test(phone))) {
+      if (!(/^1[345678]\d{9}$/.test(phone))) {
         return ctx.body = {
           status: 403,
           data: {},
