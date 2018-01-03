@@ -11,6 +11,44 @@ const logger = log4js.getLogger('router')
 
 router.prefix('/v1')
 
+//设置房间密码
+//不传 pwd 即取消密码
+router.post('/pwd',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
+      let userId = ctx.decode.userId
+      let roomId = ctx.request.body.roomId
+      let query = new AV.Query('AudioRoom')
+      query.equalTo('objectId', roomId)
+      let room = await query.first()
+      if (room.get('owner') == userId) {
+        let newRoom = AV.Object.createWithoutData('AudioRoom', roomId)
+        newRoom.set('pwd', pwd)
+        let ret = await newRoom.save()
+        return ctx.body = {
+          status: 200,
+          data: ret,
+          msg: `success`
+        }
+      } else {
+        return ctx.body = {
+          status: 1003,
+          data: {},
+          msg: `不是房主无权操作`
+        }
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `set room pwd err ->${err}`
+      }
+    }
+  }
+)
+
 router.post('/twoRoom',
   jwt.verify,
   async(ctx, next) => {
@@ -884,7 +922,7 @@ const getRoomUserInfo = (room) => {
       if (!room) {
         reject(`no room`)
       }
-      let arr = Array(room.get('owner')).concat(room.get('member'))
+      let arr = [room.get('owner'), ...room.get('member')]
       arr.forEach((item, index) => {
         data.push(new Promise(async(resolve, reject) => {
           let query = new AV.Query('_User')
@@ -899,7 +937,7 @@ const getRoomUserInfo = (room) => {
       let result = await Promise.all(data)
       resolve(result)
     } catch (err) {
-      reject(err)
+      reject(`getRoomUserInfo err ->${err}`)
     }
   })
 }
@@ -1165,9 +1203,8 @@ router.post('/audio/user',
     try {
       let userId = ctx.decode.userId
       let roomId = ctx.request.body.roomId
+      let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
       let numberLimit = 9
-      let data = await userRoom(userId)
-      console.log(`data ->${JSON.stringify(data)}`)
       let query = new AV.Query('AudioRoom')
       query.equalTo('objectId', roomId)
       let result = await query.first()
@@ -1178,7 +1215,15 @@ router.post('/audio/user',
           msg: 'no room'
         }
       }
+      if (result.get('pwd') !== pwd) {
+        return ctx.body = {
+          status: -1,
+          data: {},
+          msg: `密码错误`
+        }
+      }
       let member = result.get('member')
+      let data = await userRoom(userId)
       if (!_.isEmpty(data)) {
         return ctx.body = {
           status: 1000,
@@ -1186,7 +1231,7 @@ router.post('/audio/user',
           msg: `你已在${data.roomNub}房间内`
         }
       }
-      if (member.indexOf(userId) > -1 || userId == result.get('owner')) {
+      if (member.includes(userId) || userId == result.get('owner')) {
         return ctx.body = {
           status: 403,
           data: {},
