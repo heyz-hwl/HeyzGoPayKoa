@@ -13,13 +13,14 @@ router.prefix('/v1')
 
 //创建房间
 router.post('/room',
-  jwt.verify,
+  // jwt.verify,
   async(ctx, next) => {
     try {
       let {
-        title
+        title,
+        userId
       } = ctx.request.body
-      let owner = ctx.decode.userId
+      let owner = ctx.request.body.userId
       console.log(`owner is ${owner}`)
       let room = new Room()
       let ret = await room.createRoom(title, owner)
@@ -46,8 +47,40 @@ router.get('/room',
   async(ctx, next) => {
     try {
       let roomId = ctx.query.roomId
-      let room = new Room(roomId)
-      let audioRoomInfo = await room.getRoomById(roomId)
+      if (!roomId) {
+        return ctx.body = {
+          status: 1003,
+          data: {},
+          msg: `params missing`
+        }
+      }
+      let room = await new Room(roomId)
+      let audioRoomInfo = await room.getRoom()
+      ctx.body = {
+        status: 200,
+        data: audioRoomInfo,
+        msg: `success`
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `get room err ->${err}`
+      }
+    }
+  }
+)
+
+//获取所有房间列表
+router.get('/roomList',
+  // jwt.verify,
+  async(ctx, next) => {
+    try {
+      let roomId = ctx.query.roomId
+      let limit = ctx.query.limit ? ctx.query.limit : 20
+      let skip = ctx.query.skip ? ctx.query.skip : 0
+      let room = new Room()
+      let audioRoomInfo = await room.getAllRooms(limit, skip)
       ctx.body = {
         status: 200,
         data: audioRoomInfo,
@@ -73,8 +106,8 @@ router.post('/room/user',
         userId,
         position
       } = ctx.request.body
-      let room = new Room()
-      let ret = await room.addMember(roomId, userId, position)
+      let room = await new Room()
+      let ret = await room.addMember(userId, position)
       ctx.body = {
         status: 200,
         data: ret,
@@ -89,11 +122,12 @@ router.post('/room/user',
     }
   }
 )
-
+//加锁或者解锁
+//type == 1 加锁 type == 0 解锁
 router.get('/room/lock',
   jwt.verify,
   async(ctx, next) => {
-    try{
+    try {
       let {
         roomId,
         position,
@@ -106,7 +140,7 @@ router.get('/room/lock',
         data: ret,
         msg: `success`
       }
-    }catch(err){
+    } catch (err) {
       ctx.body = {
         status: -1,
         data: {},
