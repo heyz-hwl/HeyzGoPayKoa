@@ -1059,6 +1059,7 @@ router.post('/audio/room',
       audioRoom.set('roomNub', String(roomNub))
       audioRoom.set('member', [])
       audioRoom.set('lastMember', [])
+      audioRoom.set('pwd', '')
       let query1 = new AV.Query('_User')
       query1.equalTo('objectId', owner)
       let user = await query1.first()
