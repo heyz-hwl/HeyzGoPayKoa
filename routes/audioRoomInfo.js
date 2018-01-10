@@ -163,27 +163,32 @@ router.post('/room/user',
 )
 
 //用户主动退出房间时,不用传参数
-//房主或者副房主踢人时传操作者的 userId
+//退出房间的用户是 userId
 router.delete('/room/user',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let userId = ctx.request.body.userId ? ctx.request.body.userId : ctx.decode.userId
+      let operatorId = ctx.decode.userId
       let {
-        operatorId,
+        userId,
         roomId
       } = ctx.request.body
       let ret = {}
       let room = await new Room(roomId)
       let query = new AV.Query('AudioRoomMember')
-      if(operatorId){
-        let user = AV.Object.createWithoutData('_User', operatorId)
-        query.equalTo('user', user)
-        query.equalTo('position', '-1')
-        ret = await query.first()
-      }
-      //不是房主,并且不是副房主
-      if (false) {
+      let user = AV.Object.createWithoutData('_User', operatorId)
+      query.equalTo('user', user)
+      query.equalTo('position', '-1')
+      ret = await query.first()
+      //执行者不是房主也不是副房主
+      //或者执行者自己退出房间
+      //这里还要考虑:
+      //1.房主自己退出房间的情况
+      //2.副房主被房主踢出房间的情况
+      //3.副房主不能被其他副房主踢出房间
+      //4.副房主自己退出房间
+      //5.房间最后一个人走了以后要怎么处理
+      if ((room.owner.get('objectId') !== operatorId && _.isEmpty(ret)) || operatorId == userId) {
         ctx.body = {
           status: 1003,
           data: {},
@@ -280,7 +285,7 @@ router.post('/pwd',
 )
 
 // 查询用户在哪个房间
-router.get('/userRoom',      
+router.get('/userRoom',
   jwt.verify,
   async(ctx, next) => {
     try {
