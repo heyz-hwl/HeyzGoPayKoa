@@ -16,11 +16,12 @@ router.post('/room',
   async(ctx, next) => {
     try {
       let {
-        title
+        title,
+        pwd
       } = ctx.request.body
       let owner = ctx.decode.userId
       let room = new Room()
-      let ret = await room.createRoom(title, owner)
+      let ret = await room.createRoom(title, owner, pwd)
       if (ret) {
         ctx.body = {
           status: 200,
@@ -68,6 +69,7 @@ router.get('/room',
   }
 )
 
+//获取房间的听众信息
 router.get('/room/audience',
   jwt.verify,
   async(ctx, next) => {
@@ -142,9 +144,9 @@ router.post('/room/user',
         }
       }
       let ret = await room.addMember(userId, position)
-      socket.sockets.in(`room${roomId}`).emit('userJoinRoom', {
-        userList: ret
-      })
+      // socket.sockets.in(`room${roomId}`).emit('userJoinRoom', {
+      //   userList: ret
+      // })
       ctx.body = {
         status: 200,
         data: ret,
@@ -171,13 +173,17 @@ router.delete('/room/user',
         operatorId,
         roomId
       } = ctx.request.body
+      let ret = {}
+      let room = await new Room(roomId)
       let query = new AV.Query('AudioRoomMember')
-      let user = AV.Object.createWithoutData('_User', operatorId)
-      query.equalTo('user', user)
-      query.equalTo('position', '-1')
-      let ret = await query.first()
+      if(operatorId){
+        let user = AV.Object.createWithoutData('_User', operatorId)
+        query.equalTo('user', user)
+        query.equalTo('position', '-1')
+        ret = await query.first()
+      }
       //不是房主,并且不是副房主
-      if (room.owner.get('objectId') !== operatorId && ret) {
+      if (false) {
         ctx.body = {
           status: 1003,
           data: {},
@@ -187,10 +193,10 @@ router.delete('/room/user',
         //用户直接退房间 或者房主踢人 或者副房主踢人
         let room = await new Room(roomId)
         let ret = await room.deleteUser(userId)
-        let result = await roomId.getRoom()
-        socket.sockets.to(`room${roomId}`).emit('userLeaveRoom', {
-          userList: result
-        })
+        let result = await room.getRoom()
+        // socket.sockets.to(`room${roomId}`).emit('userLeaveRoom', {
+        //   userList: result
+        // })
         ctx.body = {
           status: 200,
           data: result,
@@ -209,7 +215,7 @@ router.delete('/room/user',
 
 //加锁或者解锁
 //type == 1 加锁 type == 0 解锁
-router.get('/room/lock',
+router.post('/room/lock',
   jwt.verify,
   async(ctx, next) => {
     try {
@@ -217,7 +223,7 @@ router.get('/room/lock',
         roomId,
         position,
         type
-      } = ctx.query
+      } = ctx.request.body
       let room = await new Room(roomId)
       let ret = await room.setPosition(position, type)
       ctx.body = {
@@ -274,7 +280,7 @@ router.post('/pwd',
 )
 
 // 查询用户在哪个房间
-router.get('/userRoom',
+router.get('/userRoom',      
   jwt.verify,
   async(ctx, next) => {
     try {
@@ -316,7 +322,7 @@ router.put('/roomTitle',
       } = ctx.request.body
       let owner = ctx.decode.userId
       let room = await new Room(roomId)
-      if (owner !== room.owner) {
+      if (owner !== room.owner.get('objectId')) {
         return ctx.body = {
           status: 1001,
           msg: '只有房主才能修改标题'
