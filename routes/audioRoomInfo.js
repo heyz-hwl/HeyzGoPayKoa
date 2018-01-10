@@ -68,6 +68,35 @@ router.get('/room',
   }
 )
 
+router.get('/room/audience',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let roomId = ctx.query.roomId
+      if (!roomId) {
+        return ctx.body = {
+          status: 1003,
+          data: {},
+          msg: `params missing`
+        }
+      }
+      let room = await new Room(roomId)
+      let data = await room.getAudience()
+      ctx.body = {
+        status: 200,
+        data: data,
+        msg: `success`
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `get room audience err ->${err}`
+      }
+    }
+  }
+)
+
 //获取所有房间列表
 router.get('/roomList',
   jwt.verify,
