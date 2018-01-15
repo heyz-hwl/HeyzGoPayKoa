@@ -200,9 +200,9 @@ router.post('/room/user',
       } = ctx.request.body
       let userId = ctx.decode.userId
       let room = await new Room(roomId)
-      if ((room.pwd) !== pwd) {
+      if (pwd !== room.pwd) {
         return ctx.body = {
-          status: -1,
+          status: 403,
           data: {},
           msg: `密码错误`
         }
@@ -242,14 +242,15 @@ router.delete('/room/user',
       query.equalTo('user', user)
       query.equalTo('position', '-1')
       ret = await query.first()
-      //执行者不是房主也不是副房主
-      //或者执行者自己退出房间
       //这里还要考虑:
-      //1.房主自己退出房间的情况
-      //2.副房主被房主踢出房间的情况
-      //3.副房主不能被其他副房主踢出房间
-      //4.副房主自己退出房间
-      //5.房间最后一个人走了以后要怎么处理
+      //1.房主自己退出房间的情况 ->ok
+      //2.副房主被房主踢出房间的情况 ->一样
+      //3.副房主能不能被其他副房主踢出房间? ->暂时只有一个副房主,没有这个问题
+      //4.副房主自己退出房间 ->一样
+      //5.房间最后一个人走了以后要怎么处理->不展示
+
+      //执行者不是房主也不是副房主
+      //也不是执行者自己退出房间
       if ((room.owner.get('objectId') !== operatorId && _.isEmpty(ret)) || operatorId == userId) {
         ctx.body = {
           status: 1003,
@@ -257,6 +258,15 @@ router.delete('/room/user',
           msg: `没有权利`
         }
       } else {
+        if(operatorId == room.owner.get('objectId')){
+          await room.ownerOffline()
+          socket.sockets.in(`room${roomId}`).emit('ownerLeaveRoom', roomId)
+          return ctx.body = {
+            status: 200,
+            data: {},
+            msg: `success`
+          }
+        }
         //用户直接退房间 或者房主踢人 或者副房主踢人
         let room = await new Room(roomId)
         let ret = await room.deleteUser(userId)
@@ -405,13 +415,15 @@ router.get('/userRoom',
     }
   })
 
-// 修改房间 title
-router.put('/roomTitle',
+// 修改房间信息
+router.put('/roomInfo',
   jwt.verify,
   async(ctx, next) => {
     try {
       let {
         title,
+        background,
+        inco,
         roomId
       } = ctx.request.body
       let owner = ctx.decode.userId
@@ -422,7 +434,7 @@ router.put('/roomTitle',
           msg: '只有房主才能修改标题'
         }
       }
-      if (!title || !roomId) {
+      if (!roomId) {
         return ctx.body = {
           status: 1000,
           data: {},
@@ -430,7 +442,17 @@ router.put('/roomTitle',
         }
       }
       let roomObj = AV.Object.createWithoutData('AudioRoomInfo', roomId)
-      roomObj.set('title', title)
+      if(title){
+        roomObj.set('title', title)
+      }
+      if(background){
+        let bgo = AV.Object.createWithoutData('_File', background)
+        roomObj.set('background', bgo)
+      }
+      if(icon){
+        let ico = AV.Object.createWithoutData('_File', icon)        
+        roomObj.set('icon', ico)
+      }
       let ret = await roomObj.save()
       ctx.body = {
         status: 200,
@@ -438,11 +460,11 @@ router.put('/roomTitle',
         msg: 'success'
       }
     } catch (err) {
-      logger.error(`update roomtitle err is ${err}`)
+      logger.error(`update roomInfo err is ${err}`)
       ctx.body = {
         status: -1,
         data: {},
-        msg: `update roomtitle err is ${err}`
+        msg: `update roomInfo err is ${err}`
       }
     }
   })
