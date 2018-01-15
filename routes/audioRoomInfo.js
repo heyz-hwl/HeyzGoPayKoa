@@ -39,8 +39,8 @@ router.post('/room',
   }
 )
 
-//获取房间信息
-router.get('/room',
+//获取房间基本信息
+router.get('/roomInfo',
   jwt.verify,
   async(ctx, next) => {
     try {
@@ -53,10 +53,9 @@ router.get('/room',
         }
       }
       let room = await new Room(roomId)
-      let audioRoomInfo = await room.getRoom()
       ctx.body = {
         status: 200,
-        data: audioRoomInfo,
+        data: room,
         msg: `success`
       }
     } catch (err) {
@@ -69,8 +68,38 @@ router.get('/room',
   }
 )
 
-//获取房间的听众信息
-router.get('/room/audience',
+//获取房间成员信息
+router.get('/roomMember',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let roomId = ctx.query.roomId
+      if (!roomId) {
+        return ctx.body = {
+          status: 1003,
+          data: {},
+          msg: `params missing`
+        }
+      }
+      let room = new Room()
+      let roomMember = await room.getMember(roomId, 1)
+      ctx.body = {
+        status: 200,
+        data: roomMember,
+        msg: `success`
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `get room member err ->${err}`
+      }
+    }
+  }
+)
+
+//获取房间的所有成员的信息
+router.get('/room/allUsers',
   jwt.verify,
   async(ctx, next) => {
     try {
@@ -83,17 +112,45 @@ router.get('/room/audience',
         }
       }
       let room = await new Room(roomId)
-      let data = await room.getAudience()
+      let data = await room.getMember(roomId, 0)
       ctx.body = {
         status: 200,
-        data: data,
+        data: [room.owner, ...data],
         msg: `success`
       }
     } catch (err) {
       ctx.body = {
         status: -1,
         data: {},
-        msg: `get room audience err ->${err}`
+        msg: `get allUsers audience err ->${err}`
+      }
+    }
+  }
+)
+
+router.get('/roomCount',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let roomId = ctx.query.roomId
+      let roomObj = AV.Object.createWithoutData('AudioRoomInfo', roomId)
+      let query = new AV.Query('AudioRoomMember')
+      query.equalTo('room', roomObj)
+      let count = await query.count()
+      let room = await new Room(roomId)
+      if (room.ownerOnline) {
+        count++
+      }
+      ctx.body = {
+        status: 200,
+        data: count,
+        msg: `success`
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `get room count err->${err}`
       }
     }
   }
@@ -143,10 +200,8 @@ router.post('/room/user',
           msg: `密码错误`
         }
       }
-      let ret = await room.addMember(userId, position)
-      // socket.sockets.in(`room${roomId}`).emit('userJoinRoom', {
-      //   userList: ret
-      // })
+      let ret = await room.addMember(userId)
+      socket.sockets.in(`room${roomId}`).emit('userJoinRoom', roomId)
       ctx.body = {
         status: 200,
         data: ret,
@@ -199,9 +254,7 @@ router.delete('/room/user',
         let room = await new Room(roomId)
         let ret = await room.deleteUser(userId)
         let result = await room.getRoom()
-        // socket.sockets.to(`room${roomId}`).emit('userLeaveRoom', {
-        //   userList: result
-        // })
+        socket.sockets.to(`room${roomId}`).emit('userLeaveRoom', roomId)
         ctx.body = {
           status: 200,
           data: result,
@@ -213,6 +266,34 @@ router.delete('/room/user',
         status: -1,
         data: {},
         msg: `delete user err ->${err}`
+      }
+    }
+  }
+)
+
+//设置房间成员的位置
+router.post('/position',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let {
+        position,
+        roomId,
+        userId
+      } = ctx.request.body
+      let room = await new Room(roomId)
+      let ret = await room.setUserPosition(userId, position)
+      socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', roomId)
+      ctx.body = {
+        status: 200,
+        data: ret,
+        msg: `success`
+      }
+    }catch(err){
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `set position err ->${err}`
       }
     }
   }
@@ -231,6 +312,7 @@ router.post('/room/lock',
       } = ctx.request.body
       let room = await new Room(roomId)
       let ret = await room.setPosition(position, type)
+      socket.sockets.in(`room${roomId}`).emit('RoomLock', ret)
       ctx.body = {
         status: 200,
         data: ret,
@@ -343,7 +425,6 @@ router.put('/roomTitle',
       let roomObj = AV.Object.createWithoutData('AudioRoomInfo', roomId)
       roomObj.set('title', title)
       let ret = await roomObj.save()
-      socket.sockets.in(`room${roomId}`).emit('updateRoomTitle', title)
       ctx.body = {
         status: 200,
         data: ret,
