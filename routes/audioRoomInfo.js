@@ -136,34 +136,6 @@ router.get('/room/allUsers',
   }
 )
 
-// router.get('/roomCount',
-//   jwt.verify,
-//   async(ctx, next) => {
-//     try {
-//       let roomId = ctx.query.roomId
-//       let roomObj = AV.Object.createWithoutData('AudioRoomInfo', roomId)
-//       let query = new AV.Query('AudioRoomMember')
-//       query.equalTo('room', roomObj)
-//       let count = await query.count()
-//       let room = await new Room(roomId)
-//       if (room.ownerOnline) {
-//         count++
-//       }
-//       ctx.body = {
-//         status: 200,
-//         data: count,
-//         msg: `success`
-//       }
-//     } catch (err) {
-//       ctx.body = {
-//         status: -1,
-//         data: {},
-//         msg: `get room count err->${err}`
-//       }
-//     }
-//   }
-// )
-
 //获取所有房间列表
 router.get('/roomList',
   jwt.verify,
