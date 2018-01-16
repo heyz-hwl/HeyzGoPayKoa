@@ -76,6 +76,35 @@ router.get('/roomInfo',
   }
 )
 
+router.get('/ownerRoom',
+  jwt.verify,
+  async(ctx, next) => {
+    try{
+      let userId = ctx.query.userId
+      let room = new Room()
+      let data = await room.getOwneRoom(userId)
+      if(_.isEmpty(data)){
+        return ctx.body = {
+          status: 403, 
+          data: {},
+          msg: `have not room`
+        }
+      }
+      ctx.body = {
+        status: 200,
+        data: data,
+        msg: `success`
+      }
+    }catch(err){
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `get owner Room err ->${err}`
+      }
+    }
+  }
+)
+
 //获取房间成员信息
 router.get('/roomMember',
   jwt.verify,
