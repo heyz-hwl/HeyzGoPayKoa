@@ -172,6 +172,14 @@ router.post('/room/user',
       } = ctx.request.body
       let userId = ctx.decode.userId
       let room = await new Room(roomId)
+      let RoomId = await room.userRoom(userId)
+      if (RoomId.status !== 203) {
+        return ctx.body = {
+          status: 1005,
+          data: {},
+          msg: `你已在${RoomId.data.roomNumber}房间内`
+        }
+      }
       if (pwd !== room.pwd) {
         return ctx.body = {
           status: 403,
@@ -223,34 +231,35 @@ router.delete('/room/user',
 
       //执行者不是房主也不是副房主
       //也不是执行者自己退出房间
-      if ((room.owner.userId !== operatorId && !_.isUndefined(ret)) || operatorId !== userId) {
-        ctx.body = {
-          status: 1003,
-          data: {},
-          msg: `没有权利`
-        }
-      } else {
-        if (operatorId == room.owner.userId) {
-          await room.ownerOffline()
-          socket.sockets.in(`room${roomId}`).emit('ownerLeaveRoom', roomId)
+      if (operatorId !== room.owner.userId && !_.isUndefined(ret)) { //执行者不是房主也不是副房主
+        if (operatorId !== userId) { //不是执行者自己退出房间
           return ctx.body = {
-            status: 200,
+            status: 1003,
             data: {},
-            msg: `success`
+            msg: `没有权利`
           }
         }
-        //用户直接退房间 或者房主踢人 或者副房主踢人
-        let ret = await room.deleteUser(userId)
-        let result = await room.getRoomInfoById(roomId)
-        socket.sockets.to(`room${roomId}`).emit('userLeaveRoom', {
-          roomId: roomId,
-          userId: userId
-        })
-        ctx.body = {
+      }
+      if (operatorId == room.owner.userId && userId == room.owner.userId) { //房主自己退出房间
+        await room.ownerOffline()
+        socket.sockets.in(`room${roomId}`).emit('ownerLeaveRoom', roomId)
+        return ctx.body = {
           status: 200,
-          data: result,
-          msg: `success`
+          data: {},
+          msg: `owner leave successfully`
         }
+      }
+      //用户直接退房间 或者房主踢人 或者副房主踢人
+      await room.deleteUser(userId)
+      let result = await room.getRoomInfoById(roomId)
+      socket.sockets.to(`room${roomId}`).emit('userLeaveRoom', {
+        roomId: roomId,
+        userId: userId
+      })
+      ctx.body = {
+        status: 200,
+        data: result,
+        msg: `success`
       }
     } catch (err) {
       ctx.body = {
@@ -367,19 +376,8 @@ router.get('/userRoom',
         userId = ctx.query.userId
       }
       let room = new Room()
-      let data = await room.userRoom(userId)
-      if (_.isEmpty(data)) {
-        return ctx.body = {
-          status: 202,
-          data: {},
-          msg: `not in room`
-        }
-      }
-      ctx.body = {
-        status: 200,
-        data: data,
-        msg: `get user room success`
-      }
+      let ret = await room.userRoom(userId)
+      ctx.body = ret
     } catch (err) {
       ctx.body = {
         status: -1,
