@@ -223,14 +223,14 @@ router.delete('/room/user',
 
       //执行者不是房主也不是副房主
       //也不是执行者自己退出房间
-      if ((room.owner.get('objectId') !== operatorId && _.isEmpty(ret)) || operatorId == userId) {
+      if ((room.owner.userId !== operatorId && !_.isUndefined(ret)) || operatorId !== userId) {
         ctx.body = {
           status: 1003,
           data: {},
           msg: `没有权利`
         }
       } else {
-        if(operatorId == room.owner.get('objectId')){
+        if (operatorId == room.owner.userId) {
           await room.ownerOffline()
           socket.sockets.in(`room${roomId}`).emit('ownerLeaveRoom', roomId)
           return ctx.body = {
@@ -240,10 +240,12 @@ router.delete('/room/user',
           }
         }
         //用户直接退房间 或者房主踢人 或者副房主踢人
-        let room = await new Room(roomId)
         let ret = await room.deleteUser(userId)
-        let result = await room.getRoom()
-        socket.sockets.to(`room${roomId}`).emit('userLeaveRoom', roomId)
+        let result = await room.getRoomInfoById(roomId)
+        socket.sockets.to(`room${roomId}`).emit('userLeaveRoom', {
+          roomId: roomId,
+          userId: userId
+        })
         ctx.body = {
           status: 200,
           data: result,
@@ -278,7 +280,7 @@ router.post('/position',
         data: ret,
         msg: `success`
       }
-    }catch(err){
+    } catch (err) {
       ctx.body = {
         status: -1,
         data: {},
@@ -414,15 +416,15 @@ router.put('/roomInfo',
         }
       }
       let roomObj = AV.Object.createWithoutData('AudioRoomInfo', roomId)
-      if(title){
+      if (title) {
         roomObj.set('title', title)
       }
-      if(background){
+      if (background) {
         let bgo = AV.Object.createWithoutData('_File', background)
         roomObj.set('background', bgo)
       }
-      if(icon){
-        let ico = AV.Object.createWithoutData('_File', icon)        
+      if (icon) {
+        let ico = AV.Object.createWithoutData('_File', icon)
         roomObj.set('icon', ico)
       }
       let ret = await roomObj.save()
