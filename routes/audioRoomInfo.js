@@ -30,6 +30,7 @@ router.post('/room',
         }
       }
     } catch (err) {
+      logger.error(`make a new room err->${err}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -67,6 +68,7 @@ router.get('/roomInfo',
         msg: `success`
       }
     } catch (err) {
+      logger.error(`get room err ->${err}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -96,6 +98,7 @@ router.get('/ownerRoom',
         msg: `success`
       }
     }catch(err){
+      logger.error(`get owner Room err ->${err}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -126,6 +129,7 @@ router.get('/roomMember',
         msg: `success`
       }
     } catch (err) {
+      logger.error(`get room member err ->${err}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -156,6 +160,7 @@ router.get('/room/allUsers',
         msg: `success`
       }
     } catch (err) {
+      logger.error(`get allUsers audience err ->${err}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -181,6 +186,7 @@ router.get('/roomList',
         msg: `success`
       }
     } catch (err) {
+      logger.error(`get room err ->${err}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -224,6 +230,7 @@ router.post('/room/user',
         msg: `success`
       }
     } catch (err) {
+      logger.error(`add user to room err ->${err}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -291,6 +298,7 @@ router.delete('/room/user',
         msg: `success`
       }
     } catch (err) {
+      logger.error(`delete user err ->${err}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -319,6 +327,7 @@ router.post('/position',
         msg: `success`
       }
     } catch (err) {
+      logg.error(`set position err ->${err}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -348,6 +357,7 @@ router.post('/room/lock',
         msg: `success`
       }
     } catch (err) {
+      logger.error(`lock err ->${err}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -386,6 +396,7 @@ router.post('/pwd',
         }
       }
     } catch (err) {
+      logger.error(`set room pwd err ->${err}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -408,6 +419,7 @@ router.get('/userRoom',
       let ret = await room.userRoom(userId)
       ctx.body = ret
     } catch (err) {
+      logger.error(`get user room err is ${err}`)
       ctx.body = {
         status: -1,
         data: {},
