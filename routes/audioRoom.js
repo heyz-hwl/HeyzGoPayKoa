@@ -13,41 +13,41 @@ router.prefix('/v1')
 
 //设置房间密码
 //不传 pwd 即取消密码
-router.post('/pwd',
-  jwt.verify,
-  async(ctx, next) => {
-    try {
-      let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
-      let userId = ctx.decode.userId
-      let roomId = ctx.request.body.roomId
-      let query = new AV.Query('AudioRoom')
-      query.equalTo('objectId', roomId)
-      let room = await query.first()
-      if (room.get('owner') == userId) {
-        let newRoom = AV.Object.createWithoutData('AudioRoom', roomId)
-        newRoom.set('pwd', pwd)
-        let ret = await newRoom.save()
-        return ctx.body = {
-          status: 200,
-          data: ret,
-          msg: `success`
-        }
-      } else {
-        return ctx.body = {
-          status: 1003,
-          data: {},
-          msg: `不是房主无权操作`
-        }
-      }
-    } catch (err) {
-      ctx.body = {
-        status: -1,
-        data: {},
-        msg: `set room pwd err ->${err}`
-      }
-    }
-  }
-)
+// router.post('/pwd',
+//   jwt.verify,
+//   async(ctx, next) => {
+//     try {
+//       let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
+//       let userId = ctx.decode.userId
+//       let roomId = ctx.request.body.roomId
+//       let query = new AV.Query('AudioRoom')
+//       query.equalTo('objectId', roomId)
+//       let room = await query.first()
+//       if (room.get('owner') == userId) {
+//         let newRoom = AV.Object.createWithoutData('AudioRoom', roomId)
+//         newRoom.set('pwd', pwd)
+//         let ret = await newRoom.save()
+//         return ctx.body = {
+//           status: 200,
+//           data: ret,
+//           msg: `success`
+//         }
+//       } else {
+//         return ctx.body = {
+//           status: 1003,
+//           data: {},
+//           msg: `不是房主无权操作`
+//         }
+//       }
+//     } catch (err) {
+//       ctx.body = {
+//         status: -1,
+//         data: {},
+//         msg: `set room pwd err ->${err}`
+//       }
+//     }
+//   }
+// )
 
 router.post('/twoRoom',
   jwt.verify,
