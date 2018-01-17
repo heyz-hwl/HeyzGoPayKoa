@@ -314,6 +314,13 @@ router.delete('/room/user',
   }
 )
 
+router.get('/invitePosition',
+  jwt.verify,
+  async(ctx, next) => {
+
+  }
+)
+
 //设置房间成员的位置
 router.post('/position',
   jwt.verify,
@@ -440,7 +447,7 @@ router.put('/roomInfo',
       let {
         title,
         background,
-        inco,
+        icon,
         roomId
       } = ctx.request.body
       let owner = ctx.decode.userId
