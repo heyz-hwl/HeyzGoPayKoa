@@ -154,9 +154,15 @@ router.get('/room/allUsers',
       }
       let room = await new Room(roomId)
       let data = await room.getMember(roomId, 0)
+      let ret
+      if(room.ownerOnline){
+        ret = [room.owner, ...data]
+      }else{
+        ret = data
+      }
       ctx.body = {
         status: 200,
-        data: [room.owner, ...data],
+        data: ret,
         msg: `success`
       }
     } catch (err) {
