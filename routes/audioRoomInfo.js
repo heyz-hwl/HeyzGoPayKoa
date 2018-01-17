@@ -382,10 +382,8 @@ router.post('/pwd',
       let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
       let userId = ctx.decode.userId
       let roomId = ctx.request.body.roomId
-      let query = new AV.Query('AudioRoomInfo')
-      query.equalTo('objectId', roomId)
-      let room = await query.first()
-      if (room.get('owner') == userId) {
+      let room = await new Room(roomId)
+      if (room.owner.userId == userId) {
         let newRoom = AV.Object.createWithoutData('AudioRoomInfo', roomId)
         newRoom.set('pwd', pwd)
         let ret = await newRoom.save()
@@ -447,7 +445,8 @@ router.put('/roomInfo',
       } = ctx.request.body
       let owner = ctx.decode.userId
       let room = await new Room(roomId)
-      if (owner !== room.owner.get('objectId')) {
+      console.log(`owner ->${JSON.stringify(room.owner)}`)
+      if (owner !== room.owner.userId) {
         return ctx.body = {
           status: 1001,
           msg: '只有房主才能修改标题'
