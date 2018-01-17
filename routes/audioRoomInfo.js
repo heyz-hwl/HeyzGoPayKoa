@@ -2,6 +2,7 @@ const AV = require('leancloud-storage')
 const router = require('koa-router')()
 const jwt = require('../lib/jwt')
 const _ = require('lodash')
+const db = require('../lib/db')
 const moment = require('moment')
 const socket = require('../lib/socket')
 const log4js = require('koa-log4')
@@ -154,7 +155,7 @@ router.get('/room/allUsers',
       }
       let room = await new Room(roomId)
       let data = await room.getMember(roomId, 0)
-      let ret
+      let ret = []
       if(room.ownerOnline){
         ret = [room.owner, ...data]
       }else{
@@ -317,7 +318,34 @@ router.delete('/room/user',
 router.get('/invitePosition',
   jwt.verify,
   async(ctx, next) => {
-
+    try{
+      let userId = ctx.query.userId
+      let position = ctx.query.position
+      let roomId = ctx.query.roomId
+      let sql = `select * from ConnectedUser where userId="${userId}"`
+      let socketId = await db.excute(sql)
+      let query = new AV.Query('AudioRoomMember')
+      let user = AV.Object.createWithoutData('_User', userId)
+      let room = AV.Object.createWithoutData('AudioRoomInfo', roomId)
+      query.equalTo('room', room)
+      query.equalTo('user', user)
+      let ret = await query.first()
+      if(ret && !_.isEmpty(socket)){
+        socket.sockets.connected[socketId[0].socketId].emit('invitePosition', position)
+      }
+      ctx.body = {
+        status: 200,
+        data: {},
+        msg: `success`
+      }
+    }catch(err){
+      logger.error(`invite position err ->${err}`)
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `invite position err ->${err}`
+      }
+    }
   }
 )
 
