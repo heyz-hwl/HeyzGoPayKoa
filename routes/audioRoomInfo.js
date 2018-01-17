@@ -217,12 +217,12 @@ router.post('/room/user',
       let queryMember = new AV.Query('AudioRoomMember')
       queryMember.equalTo('user', user)
       queryMember.include('room')
-      let ret = await queryMember.first()
-      if (ret) {
+      let ret2 = await queryMember.first()
+      if (ret2) {
         return ctx.body = {
           status: 1005,
           data: {},
-          msg: `你已在${ret.get('room').get('roomNumber')}房间内`
+          msg: `你已在${ret2.get('room').get('roomNumber')}房间内`
         }
       }
       if (pwd !== room.pwd) {
