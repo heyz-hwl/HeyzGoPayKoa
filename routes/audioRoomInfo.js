@@ -82,13 +82,13 @@ router.get('/roomInfo',
 router.get('/ownerRoom',
   jwt.verify,
   async(ctx, next) => {
-    try{
+    try {
       let userId = ctx.query.userId
       let room = new Room()
       let data = await room.getOwneRoom(userId)
-      if(_.isEmpty(data)){
+      if (_.isEmpty(data)) {
         return ctx.body = {
-          status: 403, 
+          status: 403,
           data: {},
           msg: `have not room`
         }
@@ -98,7 +98,7 @@ router.get('/ownerRoom',
         data: data,
         msg: `success`
       }
-    }catch(err){
+    } catch (err) {
       logger.error(`get owner Room err ->${err}`)
       ctx.body = {
         status: -1,
@@ -156,9 +156,9 @@ router.get('/room/allUsers',
       let room = await new Room(roomId)
       let data = await room.getMember(roomId, 0)
       let ret = []
-      if(room.ownerOnline){
+      if (room.ownerOnline) {
         ret = [room.owner, ...data]
-      }else{
+      } else {
         ret = data
       }
       ctx.body = {
@@ -214,12 +214,15 @@ router.post('/room/user',
       } = ctx.request.body
       let userId = ctx.decode.userId
       let room = await new Room(roomId)
-      let RoomId = await room.userRoom(userId)
-      if (RoomId.status !== 203) {
+      let queryMember = new AV.Query('AudioRoomMember')
+      queryMember.equalTo('user', user)
+      queryMember.include('room')
+      let ret = await queryMember.first()
+      if (ret) {
         return ctx.body = {
           status: 1005,
           data: {},
-          msg: `你已在${RoomId.data.roomNumber}房间内`
+          msg: `你已在${ret.get('room').get('roomNumber')}房间内`
         }
       }
       if (pwd !== room.pwd) {
@@ -318,7 +321,7 @@ router.delete('/room/user',
 router.get('/invitePosition',
   jwt.verify,
   async(ctx, next) => {
-    try{
+    try {
       let userId = ctx.query.userId
       let position = ctx.query.position
       let roomId = ctx.query.roomId
@@ -330,7 +333,7 @@ router.get('/invitePosition',
       query.equalTo('room', room)
       query.equalTo('user', user)
       let ret = await query.first()
-      if(ret && !_.isEmpty(socket)){
+      if (ret && !_.isEmpty(socket)) {
         socket.sockets.connected[socketId[0].socketId].emit('invitePosition', position)
       }
       ctx.body = {
@@ -338,7 +341,7 @@ router.get('/invitePosition',
         data: {},
         msg: `success`
       }
-    }catch(err){
+    } catch (err) {
       logger.error(`invite position err ->${err}`)
       ctx.body = {
         status: -1,
