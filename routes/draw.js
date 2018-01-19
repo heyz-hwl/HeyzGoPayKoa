@@ -38,7 +38,7 @@ const draw = (userId, userGrade, user) => {
     newUser.set('grade', userGrade);
     let exp = user.get('exp');
     let drawNumber = util.randomNumber(0, 10000);
-    if (drawNumber < 3) {  //5
+    if (drawNumber < 1) {  //3
       prize = `传说皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 34);
@@ -52,7 +52,7 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       })
-    } else if (drawNumber < 8) {  //15
+    } else if (drawNumber < 4) {  //8
       prize = `传说皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 33);
@@ -66,7 +66,7 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       });
-    } else if (drawNumber < 15) {  //65
+    } else if (drawNumber < 8) {  //15
       prize = `史诗皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 32);
@@ -80,7 +80,7 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       });
-    } else if (drawNumber < 100) {  //165
+    } else if (drawNumber < 50) {  //100
       prize = `稀有皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 31);
@@ -94,7 +94,7 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       });
-    } else if (drawNumber < 365) {
+    } else if (drawNumber < 182) { //365
       prize = `普通皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 30);
@@ -555,10 +555,13 @@ router.get('/draw/record',
           msg: `no userId`
         }
       }
-      let query = new AV.Query('DrawRecord');
-      query.equalTo('userId', userId);
-      query.include('skin');
-      query.descending('updatedAt');
+      let query = new AV.Query('DrawRecord')
+      query.equalTo('userId', userId)
+      query.notEqualTo('type', 20)
+      query.notEqualTo('type', 21)
+      query.notEqualTo('type', 22)
+      query.include('skin')
+      query.descending('updatedAt')
       let records = await query.find()
       if (_.isEmpty(records)) {
         records = [];
