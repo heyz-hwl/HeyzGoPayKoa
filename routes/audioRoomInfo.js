@@ -214,6 +214,7 @@ router.post('/room/user',
       } = ctx.request.body
       let userId = ctx.decode.userId
       let room = await new Room(roomId)
+      let user = AV.Object.createWithoutData('_User', userId)
       let queryMember = new AV.Query('AudioRoomMember')
       queryMember.equalTo('user', user)
       queryMember.include('room')
