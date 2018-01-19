@@ -349,7 +349,10 @@ router.get('/invitePosition',
       query.equalTo('user', user)
       let ret = await query.first()
       if (ret && !_.isEmpty(socket)) {
-        socket.sockets.connected[socketId[0].socketId].emit('invitePosition', position)
+        socket.sockets.connected[socketId[0].socketId].emit('invitePosition', {
+          roomId: roomId,
+          position: position
+        })
       }
       ctx.body = {
         status: 200,
