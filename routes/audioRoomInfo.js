@@ -372,7 +372,7 @@ router.post('/position',
         msg: `success`
       }
     } catch (err) {
-      logg.error(`set position err ->${err}`)
+      logger.error(`set position err ->${err}`)
       ctx.body = {
         status: -1,
         data: {},
