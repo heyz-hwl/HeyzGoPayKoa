@@ -220,10 +220,24 @@ router.post('/room/user',
       queryMember.include('room')
       let ret2 = await queryMember.first()
       if (ret2) {
+        if (ret2.get('room').get('objectId') == roomId) {
+          return ctx.body = {
+            status: 200,
+            data: roomId,
+            msg: `直接加入房间`
+          }
+        }
         return ctx.body = {
           status: 1005,
           data: {},
           msg: `你已在${ret2.get('room').get('roomNumber')}房间内`
+        }
+      }
+      if (userId == room.owner.userId) {
+        return ctx.body = {
+          status: 200,
+          data: roomId,
+          msg: `直接加入房间`
         }
       }
       if (pwd !== room.pwd) {
