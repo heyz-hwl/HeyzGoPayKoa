@@ -31,7 +31,7 @@ router.post('/room',
         }
       }
     } catch (err) {
-      logger.error(`make a new room err->${err}`)
+      logger.error(`make a new room err->${err}params ->title=${title},pwd=${pwd},owner=${owner}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -69,7 +69,7 @@ router.get('/roomInfo',
         msg: `success`
       }
     } catch (err) {
-      logger.error(`get room err ->${err}`)
+      logger.error(`get room err ->${err} params ->roomId=${roomId}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -99,7 +99,7 @@ router.get('/ownerRoom',
         msg: `success`
       }
     } catch (err) {
-      logger.error(`get owner Room err ->${err}`)
+      logger.error(`get owner Room err ->${err} params ->userId=${userId}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -130,7 +130,7 @@ router.get('/roomMember',
         msg: `success`
       }
     } catch (err) {
-      logger.error(`get room member err ->${err}`)
+      logger.error(`get room member err ->${err} params ->roomId=${roomId}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -167,7 +167,7 @@ router.get('/room/allUsers',
         msg: `success`
       }
     } catch (err) {
-      logger.error(`get allUsers audience err ->${err}`)
+      logger.error(`get allUsers audience err ->${err} params ->roomId=${roomId}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -182,7 +182,6 @@ router.get('/roomList',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let roomId = ctx.query.roomId
       let limit = ctx.query.limit ? ctx.query.limit : 20
       let skip = ctx.query.skip ? ctx.query.skip : 0
       let room = new Room()
@@ -255,7 +254,7 @@ router.post('/room/user',
         msg: `success`
       }
     } catch (err) {
-      logger.error(`add user to room err ->${err}`)
+      logger.error(`add user to room err ->${err} params ->roomId=${roomId},pwd=${pwd}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -323,7 +322,7 @@ router.delete('/room/user',
         msg: `success`
       }
     } catch (err) {
-      logger.error(`delete user err ->${err}`)
+      logger.error(`delete user err ->${err} params ->userId=${userId},roomId=${roomId}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -360,7 +359,7 @@ router.get('/invitePosition',
         msg: `success`
       }
     } catch (err) {
-      logger.error(`invite position err ->${err}`)
+      logger.error(`invite position err ->${err} params ->userId=${userId},position=${position} roomId=${roomId}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -389,7 +388,7 @@ router.post('/position',
         msg: `success`
       }
     } catch (err) {
-      logger.error(`set position err ->${err}`)
+      logger.error(`set position err ->${err} params ->position=${position},roomId=${roomId} userId=${userId}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -419,7 +418,7 @@ router.post('/room/lock',
         msg: `success`
       }
     } catch (err) {
-      logger.error(`lock err ->${err}`)
+      logger.error(`lock err ->${err} params ->roomId=${roomId},position=${position},type=${type}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -456,7 +455,7 @@ router.post('/pwd',
         }
       }
     } catch (err) {
-      logger.error(`set room pwd err ->${err}`)
+      logger.error(`set room pwd err ->${err} pwd=${pwd},userId=${userId},roomId=${roomId}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -479,7 +478,7 @@ router.get('/userRoom',
       let ret = await room.userRoom(userId)
       ctx.body = ret
     } catch (err) {
-      logger.error(`get user room err is ${err}`)
+      logger.error(`get user room err is ${err} params ->userId=${userId}`)
       ctx.body = {
         status: -1,
         data: {},
@@ -534,7 +533,7 @@ router.put('/roomInfo',
         msg: 'success'
       }
     } catch (err) {
-      logger.error(`update roomInfo err is ${err}`)
+      logger.error(`update roomInfo err is ${err}params ->title=${title},background=${background},icon=${ico},roomId=${roomId},owner=${owner}`)
       ctx.body = {
         status: -1,
         data: {},
