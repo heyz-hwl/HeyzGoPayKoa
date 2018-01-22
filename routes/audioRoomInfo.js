@@ -232,13 +232,16 @@ router.post('/room/user',
           msg: `你已在${ret2.get('room').get('roomNumber')}房间内`
         }
       }
-      // if (userId == room.owner.userId) {
-      //   return ctx.body = {
-      //     status: 200,
-      //     data: roomId,
-      //     msg: `直接加入房间`
-      //   }
-      // }
+      if (userId == room.owner.userId) {
+        let room = AV.Object.createWithoutData('AudioRoomInfo', roomId)
+        room.set('ownerOnline', true)
+        await room.save()
+        return ctx.body = {
+          status: 200,
+          data: roomId,
+          msg: `直接加入房间`
+        }
+      }
       if (pwd !== room.pwd) {
         return ctx.body = {
           status: 403,
