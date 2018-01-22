@@ -231,8 +231,8 @@ router.post('/room/user',
         }
       }
       if (userId == room.owner.userId) {
-        let room = AV.Object.createWithoutData('AudioRoomInfo', roomId)
-        room.set('ownerOnline', true)
+        let roomInfo = AV.Object.createWithoutData('AudioRoomInfo', roomId)
+        roomInfo.set('ownerOnline', true)
         await room.save()
         return ctx.body = {
           status: 200,
