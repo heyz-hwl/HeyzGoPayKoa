@@ -16,10 +16,8 @@ router.post('/room',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let {
-        title,
-        pwd
-      } = ctx.request.body
+      let title = ctx.request.body.title
+      let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
       let owner = ctx.decode.userId
       let room = new Room()
       let ret = await room.createRoom(title, owner, pwd)
