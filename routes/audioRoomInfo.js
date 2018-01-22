@@ -207,10 +207,8 @@ router.post('/room/user',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let {
-        roomId,
-        pwd
-      } = ctx.request.body
+      let roomId = ctx.request.body.roomId
+      let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
       let userId = ctx.decode.userId
       let room = await new Room(roomId)
       let user = AV.Object.createWithoutData('_User', userId)
