@@ -234,7 +234,7 @@ router.post('/room/user',
       if (userId == room.owner.userId) {
         let roomInfo = AV.Object.createWithoutData('AudioRoomInfo', roomId)
         roomInfo.set('ownerOnline', true)
-        await room.save()
+        await roomInfo.save()
         socket.sockets.in(`room${roomId}`).emit('userJoinRoom', {
           roomId: roomId
         })
