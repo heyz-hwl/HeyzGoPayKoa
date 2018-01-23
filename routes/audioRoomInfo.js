@@ -15,10 +15,10 @@ router.prefix('/v1')
 router.post('/room',
   jwt.verify,
   async(ctx, next) => {
+    let title = ctx.request.body.title
+    let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
+    let owner = ctx.decode.userId
     try {
-      let title = ctx.request.body.title
-      let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
-      let owner = ctx.decode.userId
       let room = new Room()
       let ret = await room.createRoom(title, owner, pwd)
       if (ret) {
@@ -46,8 +46,8 @@ router.post('/room',
 router.get('/roomInfo',
   jwt.verify,
   async(ctx, next) => {
+    let roomId = ctx.query.roomId
     try {
-      let roomId = ctx.query.roomId
       if (!roomId) {
         return ctx.body = {
           status: 1003,
@@ -83,8 +83,8 @@ router.get('/roomInfo',
 router.get('/ownerRoom',
   jwt.verify,
   async(ctx, next) => {
+    let userId = ctx.query.userId
     try {
-      let userId = ctx.query.userId
       let room = new Room()
       let data = await room.getOwneRoom(userId)
       if (_.isEmpty(data)) {
@@ -114,8 +114,8 @@ router.get('/ownerRoom',
 router.get('/roomMember',
   jwt.verify,
   async(ctx, next) => {
+    let roomId = ctx.query.roomId
     try {
-      let roomId = ctx.query.roomId
       if (!roomId) {
         return ctx.body = {
           status: 1003,
@@ -145,8 +145,8 @@ router.get('/roomMember',
 router.get('/room/allUsers',
   jwt.verify,
   async(ctx, next) => {
+    let roomId = ctx.query.roomId
     try {
-      let roomId = ctx.query.roomId
       if (!roomId) {
         return ctx.body = {
           status: 1003,
@@ -207,10 +207,10 @@ router.get('/roomList',
 router.post('/room/user',
   jwt.verify,
   async(ctx, next) => {
+    let roomId = ctx.request.body.roomId
+    let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
+    let userId = ctx.decode.userId
     try {
-      let roomId = ctx.request.body.roomId
-      let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
-      let userId = ctx.decode.userId
       let room = await new Room(roomId)
       let user = AV.Object.createWithoutData('_User', userId)
       let queryMember = new AV.Query('AudioRoomMember')
@@ -235,8 +235,8 @@ router.post('/room/user',
         let roomInfo = AV.Object.createWithoutData('AudioRoomInfo', roomId)
         roomInfo.set('ownerOnline', true)
         await room.save()
-        socket.sockets.in(`room${ret.get('objectId')}`).emit('userJoinRoom', {
-          roomId: ret.get('objectId')
+        socket.sockets.in(`room${roomId}`).emit('userJoinRoom', {
+          roomId: roomId
         })
         return ctx.body = {
           status: 200,
@@ -274,12 +274,12 @@ router.post('/room/user',
 router.delete('/room/user',
   jwt.verify,
   async(ctx, next) => {
+    let operatorId = ctx.decode.userId
+    let {
+      userId,
+      roomId
+    } = ctx.request.body
     try {
-      let operatorId = ctx.decode.userId
-      let {
-        userId,
-        roomId
-      } = ctx.request.body
       let ret = {}
       let room = await new Room(roomId)
       let query = new AV.Query('AudioRoomMember')
@@ -338,10 +338,10 @@ router.delete('/room/user',
 router.get('/invitePosition',
   jwt.verify,
   async(ctx, next) => {
+    let userId = ctx.query.userId
+    let position = ctx.query.position
+    let roomId = ctx.query.roomId
     try {
-      let userId = ctx.query.userId
-      let position = ctx.query.position
-      let roomId = ctx.query.roomId
       let sql = `select * from ConnectedUser where userId="${userId}"`
       let socketId = await db.excute(sql)
       let query = new AV.Query('AudioRoomMember')
@@ -376,12 +376,12 @@ router.get('/invitePosition',
 router.post('/position',
   jwt.verify,
   async(ctx, next) => {
+    let {
+      position,
+      roomId,
+      userId
+    } = ctx.request.body
     try {
-      let {
-        position,
-        roomId,
-        userId
-      } = ctx.request.body
       // let operatorId = ctx.decode.userId
       // let query = new AV.Query('AudioRoomMember')
       // let user = AV.Object.createWithoutData('_User', operatorId)
@@ -421,12 +421,12 @@ router.post('/position',
 router.post('/room/lock',
   jwt.verify,
   async(ctx, next) => {
+    let {
+      roomId,
+      position,
+      type
+    } = ctx.request.body
     try {
-      let {
-        roomId,
-        position,
-        type
-      } = ctx.request.body
       let room = await new Room(roomId)
       let ret = await room.setPosition(position, type)
       socket.sockets.in(`room${roomId}`).emit('RoomLock', ret)
@@ -451,10 +451,10 @@ router.post('/room/lock',
 router.post('/pwd',
   jwt.verify,
   async(ctx, next) => {
+    let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
+    let userId = ctx.decode.userId
+    let roomId = ctx.request.body.roomId
     try {
-      let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
-      let userId = ctx.decode.userId
-      let roomId = ctx.request.body.roomId
       let room = await new Room(roomId)
       if (room.owner.userId == userId) {
         let newRoom = AV.Object.createWithoutData('AudioRoomInfo', roomId)
@@ -487,11 +487,11 @@ router.post('/pwd',
 router.get('/userRoom',
   jwt.verify,
   async(ctx, next) => {
+    let userId = ctx.decode.userId
+    if (ctx.query.userId) {
+      userId = ctx.query.userId
+    }
     try {
-      let userId = ctx.decode.userId
-      if (ctx.query.userId) {
-        userId = ctx.query.userId
-      }
       let room = new Room()
       let ret = await room.userRoom(userId)
       ctx.body = ret
@@ -509,14 +509,14 @@ router.get('/userRoom',
 router.put('/roomInfo',
   jwt.verify,
   async(ctx, next) => {
+    let {
+      title,
+      background,
+      icon,
+      roomId
+    } = ctx.request.body
+    let owner = ctx.decode.userId
     try {
-      let {
-        title,
-        background,
-        icon,
-        roomId
-      } = ctx.request.body
-      let owner = ctx.decode.userId
       let room = await new Room(roomId)
       console.log(`owner ->${JSON.stringify(room.owner)}`)
       if (owner !== room.owner.userId) {
