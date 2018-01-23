@@ -235,6 +235,9 @@ router.post('/room/user',
         let roomInfo = AV.Object.createWithoutData('AudioRoomInfo', roomId)
         roomInfo.set('ownerOnline', true)
         await room.save()
+        socket.sockets.in(`room${ret.get('objectId')}`).emit('ownerJoinRoom', {
+          roomId: ret.get('objectId')
+        })
         return ctx.body = {
           status: 200,
           data: roomId,
@@ -291,8 +294,6 @@ router.delete('/room/user',
       //4.副房主自己退出房间 ->一样
       //5.房间最后一个人走了以后要怎么处理->不展示
 
-      //执行者不是房主也不是副房主
-      //也不是执行者自己退出房间
       if (operatorId !== room.owner.userId && !_.isUndefined(ret)) { //执行者不是房主也不是副房主
         if (operatorId !== userId) { //不是执行者自己退出房间
           return ctx.body = {
