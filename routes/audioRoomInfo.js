@@ -22,7 +22,7 @@ router.post('/room',
       let room = new Room()
       let ret = await room.createRoom(title, owner, pwd)
       if (ret) {
-        socket.sockets.in(`room${ret.get('objectId')}`).emit('ownerJoinRoom', {
+        socket.sockets.in(`room${ret.get('objectId')}`).emit('userJoinRoom', {
           roomId: ret.get('objectId')
         })
         ctx.body = {
@@ -235,7 +235,7 @@ router.post('/room/user',
         let roomInfo = AV.Object.createWithoutData('AudioRoomInfo', roomId)
         roomInfo.set('ownerOnline', true)
         await room.save()
-        socket.sockets.in(`room${ret.get('objectId')}`).emit('ownerJoinRoom', {
+        socket.sockets.in(`room${ret.get('objectId')}`).emit('userJoinRoom', {
           roomId: ret.get('objectId')
         })
         return ctx.body = {
