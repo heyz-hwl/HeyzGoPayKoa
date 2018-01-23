@@ -20,6 +20,14 @@ router.post('/room',
     let owner = ctx.decode.userId
     try {
       let room = new Room()
+      let userInRoom = await room.userRoom(owner)
+      if(userInRoom.status !== 203){
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `你已经在${userInRoom.data.roomNumber}房间里`
+        }
+      }
       let ret = await room.createRoom(title, owner, pwd)
       if (ret) {
         socket.sockets.in(`room${ret.get('objectId')}`).emit('userJoinRoom', {
