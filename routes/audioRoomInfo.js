@@ -381,21 +381,21 @@ router.post('/position',
         roomId,
         userId
       } = ctx.request.body
-      let operatorId = ctx.decode.userId
-      let query = new AV.Query('AudioRoomMember')
-      let user = AV.Object.createWithoutData('_User', operatorId)
-      query.equalTo('user', user)
-      query.equalTo('position', '-1')
-      let ret = await query.first()
-      if (operatorId !== room.owner.userId && !_.isUndefined(ret)) { //执行者不是房主也不是副房主
-        if (operatorId !== userId) { //不是执行者自己退出房间
-          return ctx.body = {
-            status: 1003,
-            data: {},
-            msg: `没有权利`
-          }
-        }
-      }
+      // let operatorId = ctx.decode.userId
+      // let query = new AV.Query('AudioRoomMember')
+      // let user = AV.Object.createWithoutData('_User', operatorId)
+      // query.equalTo('user', user)
+      // query.equalTo('position', '-1')
+      // let ret = await query.first()
+      // if (operatorId !== room.owner.userId && !_.isUndefined(ret)) { //执行者不是房主也不是副房主
+      //   if (operatorId !== userId) { //不是执行者自己退出房间
+      //     return ctx.body = {
+      //       status: 1003,
+      //       data: {},
+      //       msg: `没有权利`
+      //     }
+      //   }
+      // }
       let room = await new Room(roomId)
       ret = await room.setUserPosition(userId, position)
       socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', roomId)
