@@ -21,7 +21,7 @@ router.post('/room',
     try {
       let room = new Room()
       let userInRoom = await room.userRoom(owner)
-      if(userInRoom.status !== 203){
+      if (userInRoom.status !== 203) {
         return ctx.body = {
           status: 403,
           data: {},
@@ -290,11 +290,6 @@ router.delete('/room/user',
     try {
       let ret = {}
       let room = await new Room(roomId)
-      let query = new AV.Query('AudioRoomMember')
-      let user = AV.Object.createWithoutData('_User', operatorId)
-      query.equalTo('user', user)
-      query.equalTo('position', '-1')
-      ret = await query.first()
       //这里还要考虑:
       //1.房主自己退出房间的情况 ->ok
       //2.副房主被房主踢出房间的情况 ->一样
@@ -302,7 +297,7 @@ router.delete('/room/user',
       //4.副房主自己退出房间 ->一样
       //5.房间最后一个人走了以后要怎么处理->不展示
 
-      if (operatorId !== room.owner.userId && !_.isUndefined(ret)) { //执行者不是房主也不是副房主
+      if (await room.hasRight(operatorId)) { //执行者不是房主也不是副房主
         if (operatorId !== userId) { //不是执行者自己退出房间
           return ctx.body = {
             status: 1003,
@@ -343,31 +338,35 @@ router.delete('/room/user',
   }
 )
 
+//邀请上麦
 router.get('/invitePosition',
   jwt.verify,
   async(ctx, next) => {
     let userId = ctx.query.userId
     let position = ctx.query.position
     let roomId = ctx.query.roomId
+    let operatorId = ctx.decode.userId
     try {
       let sql = `select * from ConnectedUser where userId="${userId}"`
       let socketId = await db.excute(sql)
-      let query = new AV.Query('AudioRoomMember')
-      let user = AV.Object.createWithoutData('_User', userId)
-      let room = AV.Object.createWithoutData('AudioRoomInfo', roomId)
-      query.equalTo('room', room)
-      query.equalTo('user', user)
-      let ret = await query.first()
-      if (ret && !_.isEmpty(socket)) {
-        socket.sockets.connected[socketId[0].socketId].emit('invitePosition', {
-          roomId: roomId,
-          position: position
-        })
-      }
-      ctx.body = {
-        status: 200,
-        data: {},
-        msg: `success`
+      if (await room.hasRight(operatorId)) {
+        let query = new AV.Query('AudioRoomMember')
+        let user = AV.Object.createWithoutData('_User', userId)
+        let room = AV.Object.createWithoutData('AudioRoomInfo', roomId)
+        query.equalTo('room', room)
+        query.equalTo('user', user)
+        let ret = await query.first()
+        if (ret && !_.isEmpty(socket)) {
+          socket.sockets.connected[socketId[0].socketId].emit('invitePosition', {
+            roomId: roomId,
+            position: position
+          })
+        }
+        ctx.body = {
+          status: 200,
+          data: {},
+          msg: `success`
+        }
       }
     } catch (err) {
       logger.error(`invite position err ->${err} params ->userId=${userId},position=${position} roomId=${roomId}`)
@@ -389,29 +388,22 @@ router.post('/position',
       roomId,
       userId
     } = ctx.request.body
+    let operatorId = ctx.decode.userId
     try {
-      // let operatorId = ctx.decode.userId
-      // let query = new AV.Query('AudioRoomMember')
-      // let user = AV.Object.createWithoutData('_User', operatorId)
-      // query.equalTo('user', user)
-      // query.equalTo('position', '-1')
-      // let ret = await query.first()
-      // if (operatorId !== room.owner.userId && !_.isUndefined(ret)) { //执行者不是房主也不是副房主
-      //   if (operatorId !== userId) { //不是执行者自己退出房间
-      //     return ctx.body = {
-      //       status: 1003,
-      //       data: {},
-      //       msg: `没有权利`
-      //     }
-      //   }
-      // }
       let room = await new Room(roomId)
-      ret = await room.setUserPosition(userId, position)
-      socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', roomId)
-      ctx.body = {
-        status: 200,
-        data: ret,
-        msg: `success`
+      if (position === '0') {
+        if (await room.hasRight(operatorId)) { //请离需要权限
+          ret = await room.setUserPosition(userId, position)
+          socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', roomId)
+        }
+      } else {
+        ret = await room.setUserPosition(userId, position)
+        socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', roomId)
+        ctx.body = {
+          status: 200,
+          data: ret,
+          msg: `success`
+        }
       }
     } catch (err) {
       logger.error(`set position err ->${err} params ->position=${position},roomId=${roomId} userId=${userId}`)
@@ -434,14 +426,17 @@ router.post('/room/lock',
       position,
       type
     } = ctx.request.body
+    let operatorId = ctx.decode.userId
     try {
       let room = await new Room(roomId)
-      let ret = await room.setPosition(position, type)
-      socket.sockets.in(`room${roomId}`).emit('RoomLock', ret)
-      ctx.body = {
-        status: 200,
-        data: ret,
-        msg: `success`
+      if (await room.hasRight(operatorId)) {
+        let ret = await room.setPosition(position, type)
+        socket.sockets.in(`room${roomId}`).emit('RoomLock', ret)
+        ctx.body = {
+          status: 200,
+          data: ret,
+          msg: `success`
+        }
       }
     } catch (err) {
       logger.error(`lock err ->${err} params ->roomId=${roomId},position=${position},type=${type}`)
@@ -526,7 +521,6 @@ router.put('/roomInfo',
     let owner = ctx.decode.userId
     try {
       let room = await new Room(roomId)
-      console.log(`owner ->${JSON.stringify(room.owner)}`)
       if (owner !== room.owner.userId) {
         return ctx.body = {
           status: 1001,
