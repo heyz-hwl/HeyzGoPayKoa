@@ -395,6 +395,17 @@ router.post('/position',
         if (await room.hasRight(operatorId)) { //请离需要权限
           ret = await room.setUserPosition(userId, position)
           socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', roomId)
+          return ctx.body = {
+            status: 200,
+            data: ret,
+            msg: `success`
+          }
+        }else{
+          return ctx.body = {
+            status: 1006,
+            data:{},
+            msg: `没有权限`
+          }
         }
       } else {
         ret = await room.setUserPosition(userId, position)
