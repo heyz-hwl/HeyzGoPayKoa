@@ -391,7 +391,7 @@ router.post('/position',
     let operatorId = ctx.decode.userId
     try {
       let room = await new Room(roomId)
-      if (position === '0') {
+      if (position === '0' && operatorId !== userId) {
         if (await room.hasRight(operatorId)) { //请离需要权限
           ret = await room.setUserPosition(userId, position)
           socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', roomId)
