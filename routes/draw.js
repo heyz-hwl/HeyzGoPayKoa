@@ -339,7 +339,7 @@ router.put('/draw/selectSkin',
   jwt.verify,
   async(ctx, next) => {
     try {
-      let data = ctx.request.body;
+      let data = ctx.request.body
       let drawRecordId = data.drawRecordId
       let skinName = data.skinName
       let skinId = data.skinId
@@ -362,6 +362,13 @@ router.put('/draw/selectSkin',
           status: 403,
           data: {},
           msg: `已经选择了皮肤,如需修改请联系客服`
+        }
+      }
+      if(Record.type !== 30 || Record.type !== 31 || Record.type !== 32 || Record.type !== 33 || Record.type !== 34){
+        return ctx.body = {
+          status: 1005,
+          data: {},
+          msg: `不允许兑奖`
         }
       }
       let prize = Record.get('prize')
