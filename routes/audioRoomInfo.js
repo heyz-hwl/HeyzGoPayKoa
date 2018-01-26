@@ -391,10 +391,14 @@ router.post('/position',
     let operatorId = ctx.decode.userId
     try {
       let room = await new Room(roomId)
+      let roomMember = await room.getMember(roomId, 1)
       if (position === '0' && operatorId !== userId) {
         if (await room.hasRight(operatorId)) { //请离需要权限
           ret = await room.setUserPosition(userId, position)
-          socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', roomId)
+          socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', {
+            data: roomMember,
+            info: room
+          })
           return ctx.body = {
             status: 200,
             data: ret,
@@ -409,9 +413,9 @@ router.post('/position',
         }
       } else {
         ret = await room.setUserPosition(userId, position)
-        let roomMember = await room.getMember(roomId, 1)
         socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', {
-          data: roomMember
+          data: roomMember,
+          info: room
         })
         ctx.body = {
           status: 200,
