@@ -400,16 +400,19 @@ router.post('/position',
             data: ret,
             msg: `success`
           }
-        }else{
+        } else {
           return ctx.body = {
             status: 1006,
-            data:{},
+            data: {},
             msg: `没有权限`
           }
         }
       } else {
         ret = await room.setUserPosition(userId, position)
-        socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', roomId)
+        let roomMember = await room.getMember(roomId, 1)
+        socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', {
+          data: roomMember
+        })
         ctx.body = {
           status: 200,
           data: ret,
