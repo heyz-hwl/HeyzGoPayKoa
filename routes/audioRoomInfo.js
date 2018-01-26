@@ -8,6 +8,7 @@ const socket = require('../lib/socket')
 const log4js = require('koa-log4')
 const logger = log4js.getLogger('router')
 const Room = require('../lib/audioRoom')
+const utile = require('../lib/util')
 
 router.prefix('/v1')
 
@@ -350,6 +351,10 @@ router.get('/invitePosition',
       let sql = `select * from ConnectedUser where userId="${userId}"`
       let socketId = await db.excute(sql)
       if (await room.hasRight(operatorId)) {
+        let userQuery = new AV.Query('_User')
+        userQuery.equalTo('objectId', operatorId)
+        let s = await userQuery.first()
+        let sender = utile.getUserInfo(s)
         let query = new AV.Query('AudioRoomMember')
         let user = AV.Object.createWithoutData('_User', userId)
         let room = AV.Object.createWithoutData('AudioRoomInfo', roomId)
@@ -359,7 +364,8 @@ router.get('/invitePosition',
         if (ret && !_.isEmpty(socket)) {
           socket.sockets.connected[socketId[0].socketId].emit('invitePosition', {
             roomId: roomId,
-            position: position
+            position: position,
+            sender: sender
           })
         }
         ctx.body = {
