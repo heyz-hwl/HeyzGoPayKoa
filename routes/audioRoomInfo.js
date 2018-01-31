@@ -369,7 +369,7 @@ router.get('/invitePosition',
             owner: sender
           })
         }
-        ctx.body = {
+        return ctx.body = {
           status: 200,
           data: {},
           msg: `success`
