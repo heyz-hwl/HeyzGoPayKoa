@@ -350,6 +350,7 @@ router.get('/invitePosition',
     try {
       let sql = `select * from ConnectedUser where userId="${userId}"`
       let socketId = await db.excute(sql)
+      let room = await new Room(roomId)
       if (await room.hasRight(operatorId)) {
         let userQuery = new AV.Query('_User')
         userQuery.equalTo('objectId', operatorId)
@@ -373,6 +374,11 @@ router.get('/invitePosition',
           data: {},
           msg: `success`
         }
+      }
+      return ctx.body = {
+        status: 403,
+        data: {},
+        msg: `只有房主和副房主有权利邀请`
       }
     } catch (err) {
       logger.error(`invite position err ->${err} params ->userId=${userId},position=${position} roomId=${roomId}`)
