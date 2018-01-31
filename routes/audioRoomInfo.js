@@ -365,7 +365,7 @@ router.get('/invitePosition',
           socket.sockets.connected[socketId[0].socketId].emit('invitePosition', {
             roomId: roomId,
             position: position,
-            sender: sender
+            owner: sender
           })
         }
         ctx.body = {
