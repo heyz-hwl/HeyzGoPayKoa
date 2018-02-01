@@ -308,7 +308,7 @@ router.delete('/room/user',
       //4.副房主自己退出房间 ->一样
       //5.房间最后一个人走了以后要怎么处理->不展示
 
-      if (await room.hasRight(operatorId)) { //执行者不是房主也不是副房主
+      if (!await room.hasRight(operatorId)) { //执行者不是房主也不是副房主
         if (operatorId !== userId) { //不是执行者自己退出房间
           return ctx.body = {
             status: 1003,
