@@ -15,7 +15,7 @@ router.prefix('/v1')
 //创建房间
 router.post('/room',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let title = ctx.request.body.title
     let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
     let owner = ctx.decode.userId
@@ -54,7 +54,7 @@ router.post('/room',
 //获取房间基本信息
 router.get('/roomInfo',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let roomId = ctx.query.roomId
     try {
       if (!roomId) {
@@ -91,7 +91,7 @@ router.get('/roomInfo',
 
 router.get('/ownerRoom',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let userId = ctx.query.userId
     try {
       let room = new Room()
@@ -122,7 +122,7 @@ router.get('/ownerRoom',
 //获取房间成员信息
 router.get('/roomMember',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let roomId = ctx.query.roomId
     try {
       if (!roomId) {
@@ -153,7 +153,7 @@ router.get('/roomMember',
 //获取房间的所有成员的信息
 router.get('/room/allUsers',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let roomId = ctx.query.roomId
     try {
       if (!roomId) {
@@ -190,7 +190,7 @@ router.get('/room/allUsers',
 //获取所有房间列表
 router.get('/roomList',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     try {
       let limit = ctx.query.limit ? ctx.query.limit : 20
       let skip = ctx.query.skip ? ctx.query.skip : 0
@@ -215,7 +215,7 @@ router.get('/roomList',
 //加人
 router.post('/room/user',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let roomId = ctx.request.body.roomId
     let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
     let userId = ctx.decode.userId
@@ -228,6 +228,7 @@ router.post('/room/user',
       let ret2 = await queryMember.first()
       if (ret2) {
         if (ret2.get('room').get('objectId') == roomId) {
+
           return ctx.body = {
             status: 200,
             data: roomId,
@@ -244,6 +245,15 @@ router.post('/room/user',
         let roomInfo = AV.Object.createWithoutData('AudioRoomInfo', roomId)
         roomInfo.set('ownerOnline', true)
         await roomInfo.save()
+        let query = new AV.Query('AudioRoomDisplay')
+        let Room = AV.Object.createWithoutData('AudioRoomInfo', roomId)
+        query.equalTo('room', Room)
+        let roomDisplay = await query.first()
+        if (!roomDisplay) { // 没有的话->display
+          let RoomDisplay = AV.Object.new('AudioRoomDisplay')
+          RoomDisplay.set('room', Room)
+          await RoomDisplay.save()
+        } //有的话直接返回
         socket.sockets.in(`room${roomId}`).emit('userJoinRoom', {
           roomId: roomId
         })
@@ -282,7 +292,7 @@ router.post('/room/user',
 //退出房间的用户是 userId
 router.delete('/room/user',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let operatorId = ctx.decode.userId
     let {
       userId,
@@ -342,7 +352,7 @@ router.delete('/room/user',
 //邀请上麦
 router.get('/invitePosition',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let userId = ctx.query.userId
     let position = ctx.query.position
     let roomId = ctx.query.roomId
@@ -394,7 +404,7 @@ router.get('/invitePosition',
 //设置房间成员的位置
 router.post('/position',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let {
       position,
       roomId,
@@ -451,7 +461,7 @@ router.post('/position',
 //type == 1 加锁 type == 0 解锁
 router.post('/room/lock',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let {
       roomId,
       position,
@@ -484,7 +494,7 @@ router.post('/room/lock',
 //不传 pwd 即取消密码
 router.post('/pwd',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let pwd = ctx.request.body.pwd ? ctx.request.body.pwd : ''
     let userId = ctx.decode.userId
     let roomId = ctx.request.body.roomId
@@ -520,7 +530,7 @@ router.post('/pwd',
 // 查询用户在哪个房间
 router.get('/userRoom',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let userId = ctx.decode.userId
     if (ctx.query.userId) {
       userId = ctx.query.userId
@@ -542,7 +552,7 @@ router.get('/userRoom',
 // 修改房间信息
 router.put('/roomInfo',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let {
       title,
       background,
