@@ -26,6 +26,7 @@ const exchange = require('./routes/exchange')
 const corps = require('./routes/corps')
 const follow = require('./routes/follow')
 const audioRoom = require('./routes/audioRoomInfo')
+const invitation = require('./routes/invitation')
 
 const config = require('./lib/config')
 const AV = require('leancloud-storage')
@@ -93,6 +94,7 @@ app.use(exchange.routes(), exchange.allowedMethods())
 app.use(corps.routes(), corps.allowedMethods())
 app.use(follow.routes(), follow.allowedMethods())
 app.use(audioRoom.routes(), audioRoom.allowedMethods())
+app.use(invitation.routes(), invitation.allowedMethods())
 
 app.on('error', function (err, ctx) {
   console.log(err)
