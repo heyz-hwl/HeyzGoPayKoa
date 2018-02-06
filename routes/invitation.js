@@ -9,8 +9,45 @@ const log4js = require('koa-log4')
 const logger = log4js.getLogger('router')
 const Room = require('../lib/audioRoom')
 const utile = require('../lib/util')
+const Mission = require('../lib/mission')
 
 router.prefix('/v1')
+
+router.get('/mission',
+  async (ctx, next) => {
+    try {
+      let userId = ctx.query.userId
+      let onlineTime = ctx.query.onlineTime
+      let user = AV.Object.createWithoutData('_User', userId)
+      if (onlineTime >= (60 * 30)) {
+        let mission = new Mission()
+        let query = new AV.Query('Invitation')
+        query.include('inviter')
+        query.equalTo('user', user)
+        let invitation = await query.first()
+        if (invitation) {
+          await mission.achieveMission(userId, invitation.get('inviter'))
+          return ctx.body = {
+            status: 200,
+            data: {},
+            msg: `success`
+          }
+        }
+      }
+      ctx.body = {
+        status: -200,
+        data: {},
+        msg: `err`
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `err -> ${err}`
+      }
+    }
+  }
+)
 
 router.get('/inviteCode',
   async (ctx, next) => {
@@ -99,6 +136,19 @@ router.get('/inviteTree',
         status: -1,
         data: {},
         msg: `get invite tree err->${err}`
+      }
+    }
+  }
+)
+
+router.get('/url',
+  async(ctx, next) => {
+    try{
+      let url = `www.baidu.com`
+      ctx.body = { 
+        status: 200,
+        data: url,
+        msg:`success`
       }
     }
   }
