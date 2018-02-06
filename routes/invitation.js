@@ -142,13 +142,19 @@ router.get('/inviteTree',
 )
 
 router.get('/url',
-  async(ctx, next) => {
-    try{
+  async (ctx, next) => {
+    try {
       let url = `www.baidu.com`
-      ctx.body = { 
+      ctx.body = {
         status: 200,
         data: url,
-        msg:`success`
+        msg: `success`
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `err->${err}`
       }
     }
   }
