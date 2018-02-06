@@ -145,9 +145,14 @@ router.get('/url',
   async (ctx, next) => {
     try {
       let url = `www.baidu.com`
+      let status = true
+      let data = {
+        url: url,
+        show: status
+      }
       ctx.body = {
         status: 200,
-        data: url,
+        data: data,
         msg: `success`
       }
     } catch (err) {
