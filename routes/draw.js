@@ -37,7 +37,7 @@ const draw = (userId, userGrade, user) => {
     let newUser = AV.Object.createWithoutData('_User', userId);
     newUser.set('grade', userGrade);
     let exp = user.get('exp');
-    let drawNumber = util.randomNumber(0, 10000);
+    let drawNumber = util.randomNumber(0, 182);
     if (drawNumber < 1) {  //3
       prize = `传说皮肤`;
       drawRecord.set('isDelivery', false);
