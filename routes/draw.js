@@ -9,7 +9,8 @@ const log4js = require('koa-log4')
 const logger = log4js.getLogger('router')
 const {
   upgrade
-} = require('../lib/func');
+} = require('../lib/func')
+const Grade = require('../lib/gradeHistory')
 
 const retIOS = { //IOS
   url: `https://dn-msjbwutc.qbox.me/6f856fd7729fdaca0d3c.jpg`,
@@ -36,6 +37,7 @@ const draw = (userId, userGrade, user) => {
     let drawRecord = AV.Object.new('DrawRecord');
     let newUser = AV.Object.createWithoutData('_User', userId);
     newUser.set('grade', userGrade);
+    let g = new Grade()
     let exp = user.get('exp');
     let drawNumber = util.randomNumber(0, 182);
     if (drawNumber < 1) {  //3
@@ -114,6 +116,7 @@ const draw = (userId, userGrade, user) => {
       drawRecord.set('isSelected', true);
       drawRecord.set('type', 12)
       newUser.set('grade', userGrade + 288);
+      await g.recordGrade(userId, `抽奖中奖`, 288, `+`, userGrade+288)
       data.positionId = 1;
       resolve({
         drawRecord,
@@ -128,6 +131,7 @@ const draw = (userId, userGrade, user) => {
       drawRecord.set('isSelected', true);
       drawRecord.set('type', 11);
       newUser.set('grade', userGrade + 68);
+      await g.recordGrade(userId, `抽奖中奖`, 68, `+`, userGrade+68)
       data.positionId = 1;
       resolve({
         drawRecord,
@@ -142,6 +146,7 @@ const draw = (userId, userGrade, user) => {
       drawRecord.set('isSelected', true);
       drawRecord.set('type', 10)
       newUser.set('grade', userGrade + 28);
+      await g.recordGrade(userId, `抽奖中奖`, 28, `+`, userGrade+28)
       data.positionId = 6;
       resolve({
         drawRecord,
@@ -219,6 +224,8 @@ router.get('/draw',
       query.equalTo('objectId', userId);
       let user = await query.first()
       let userGrade = user.get('grade') - gradePay;
+      let g = new Grade()
+      await g.recordGrade(userId, `抽奖花费`, gradePay, `-`, userGrade)
       if (userGrade < 0) {
         return ctx.body = {
           status: 403,

@@ -7,6 +7,7 @@ const socket = require('../lib/socket');
 const {
   upgrade
 } = require('../lib/func');
+const Grade = require('../lib/gradeHistory')
 
 router.prefix('/v1')
 
@@ -126,6 +127,8 @@ router.get('/sign',
         usr.set('level', level);
         let user = await usr.save()
         let sign = await newSign.save()
+        let g = new Grade()
+        await g.recordGrade(userId, `每日签到`, signGain.grade, `+`, user.get('grade'))
         return ctx.body = {
           status: 200,
           data: {
