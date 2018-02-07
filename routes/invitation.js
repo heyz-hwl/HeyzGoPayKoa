@@ -177,7 +177,9 @@ const getInviteTree = (inviterId) => {
       let inviteList = await query.find()
       if (!_.isEmpty(inviteList)) {
         array = inviteList.map((item, index) => {
-          return utile.getUserInfo(item.get('user'))
+          let user = utile.getUserInfo(item.get('user'))
+          user.lastTime = utile.date2TimeStamp(item.get('user').get('updatedAt'))
+          return user
         })
         let queryInviter = new AV.Query('_User')
         queryInviter.equalTo('objectId', inviterId)
@@ -209,7 +211,7 @@ const getUserAllOnlineTime = (userId) => {
       userOnlineTime.forEach((item) => {
         onlineTimeCount += item.get('onlineTime')
       })
-      query.greaterThanOrEqualTo('onlineTime', 30)
+      query.greaterThanOrEqualTo('onlineTime', 30 * 60)
       let over30MinsDay = await query.count()
       let ret = {
         userOnlineTimeCount: onlineTimeCount,

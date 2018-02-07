@@ -371,7 +371,7 @@ router.post('/draw/selectSkin',
           msg: `已经选择了皮肤,如需修改请联系客服`
         }
       }
-      if(Record.type !== 30 || Record.type !== 31 || Record.type !== 32 || Record.type !== 33 || Record.type !== 34){
+      if(![30, 31, 32, 33, 34].includes(Record.get('type'))){
         return ctx.body = {
           status: 1005,
           data: {},
@@ -432,7 +432,7 @@ router.put('/draw/selectSkin',
           msg: `已经选择了皮肤,如需修改请联系客服`
         }
       }
-      if(Record.type !== 30 || Record.type !== 31 || Record.type !== 32 || Record.type !== 33 || Record.type !== 34){
+      if(![30, 31, 32, 33, 34].includes(Record.get('type'))){
         return ctx.body = {
           status: 1005,
           data: {},
