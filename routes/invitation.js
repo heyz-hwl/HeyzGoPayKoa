@@ -80,27 +80,56 @@ router.get('/inviteCode',
   }
 )
 
+router.post('/smsCode',
+  async (ctx, next) => {
+    let phoneNumber = ctx.query.phoneNumber
+    try {
+      let ret = await AV.Cloud.requestSmsCode(phoneNumber)
+      console.log(`ret ->${JSON.stringify(ret)}`)
+      if (ret) {
+        return ctx.body = {
+          status: 200,
+          data: ret,
+          msg: `success`
+        }
+      }
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `av fail`
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `get sms code err->${err}`
+      }
+    }
+  })
+
 //用户输入邀请码
 router.post('/inviteCode',
   async (ctx, next) => {
     let {
       inviteCode,
-      userId
+      phoneNumber,
+      smsCode
     } = ctx.request.body
     try {
       let query = new AV.Query('_User')
       query.equalTo('HeyzId', inviteCode)
       let User = await query.first()
       if (User) {
+        let newUser = await AV.User.signUpOrlogInWithMobilePhone(phoneNumber, smsCode)
         let record = AV.Object.new('Invitation')
         let inviter = AV.Object.createWithoutData('_User', User.get('objectId'))
         record.set('inviter', inviter)
-        let user = AV.Object.createWithoutData('_User', userId)
+        let user = AV.Object.createWithoutData('_User', newUser.get('objectId'))
         record.set('user', user)
-        await record.save()
+        let ret = await record.save()
         ctx.body = {
           status: 200,
-          data: {},
+          data: ret,
           msg: `success`
         }
       } else {
