@@ -342,6 +342,67 @@ const getSkinURL = async(type) => {
 }
 
 //用户选定皮肤奖品
+router.post('/draw/selectSkin',
+  jwt.verify,
+  async(ctx, next) => {
+    try {
+      let data = ctx.request.body
+      let drawRecordId = data.drawRecordId
+      let skinName = data.skinName
+      let skinId = data.skinId
+      let prizeWinnerID = data.prizeWinnerID
+      let isWechat = util.isBoolean(data.isWechat)
+      let isIOS = util.isBoolean(data.isIOS)
+      let result = isIOS ? retIOS : retAndroid
+      if (!prizeWinnerID || !drawRecordId || !skinName || !skinId || !_.isBoolean(isIOS) || !_.isBoolean(isWechat)) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `Parameter missing!`
+        }
+      }
+      let query = new AV.Query('DrawRecord')
+      query.equalTo('objectId', drawRecordId)
+      let Record = await query.first()
+      if (Record.get('isSelected')) {
+        return ctx.body = {
+          status: 403,
+          data: {},
+          msg: `已经选择了皮肤,如需修改请联系客服`
+        }
+      }
+      if(Record.type !== 30 || Record.type !== 31 || Record.type !== 32 || Record.type !== 33 || Record.type !== 34){
+        return ctx.body = {
+          status: 1005,
+          data: {},
+          msg: `不允许兑奖`
+        }
+      }
+      let prize = Record.get('prize')
+      let drawRecord = AV.Object.createWithoutData('DrawRecord', drawRecordId)
+      let skin = AV.Object.createWithoutData('_File', skinId)
+      drawRecord.set('skin', skin)
+      drawRecord.set('prize', skinName)
+      drawRecord.set('prizeWinnerID', prizeWinnerID)
+      drawRecord.set('isWechat', isWechat)
+      drawRecord.set('isSelected', true)
+      drawRecord.set('isIOS', isIOS)
+      await drawRecord.save()
+      ctx.body = {
+        status: 200,
+        data: result,
+        msg: `success`
+      }
+    } catch (err) {
+      ctx.body = {
+        status: -1,
+        data: {},
+        msg: `err is ${err}`
+      }
+    }
+  })
+
+//用户选定皮肤奖品
 router.put('/draw/selectSkin',
   jwt.verify,
   async(ctx, next) => {
