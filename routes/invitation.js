@@ -173,7 +173,7 @@ router.get('/inviteTree',
 router.get('/url',
   async (ctx, next) => {
     try {
-      let url = `www.baidu.com`
+      let url = `http://ht.heyz.com/yq/index.html`
       let status = true
       let data = {
         url: url,
