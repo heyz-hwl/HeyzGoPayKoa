@@ -204,24 +204,20 @@ const getInviteTree = (inviterId) => {
       query.include('user')
       query.equalTo('inviter', inviter)
       let inviteList = await query.find()
-      if (!_.isEmpty(inviteList)) {
-        array = inviteList.map((item, index) => {
-          let user = utile.getUserInfo(item.get('user'))
-          user.lastTime = utile.date2TimeStamp(item.get('user').get('updatedAt'))
-          return user
-        })
-        let queryInviter = new AV.Query('_User')
-        queryInviter.equalTo('objectId', inviterId)
-        let inviterUser = await queryInviter.first()
-        let inviterInfo = utile.getUserInfo(inviterUser)
-        let ret = {
-          inviter: inviterInfo,
-          userList: array
-        }
-        resolve(ret)
-      } else {
-        reject(`该用户没有邀请记录`)
+      array = inviteList.map((item, index) => {
+        let user = utile.getUserInfo(item.get('user'))
+        user.lastTime = utile.date2TimeStamp(item.get('user').get('updatedAt'))
+        return user
+      })
+      let queryInviter = new AV.Query('_User')
+      queryInviter.equalTo('objectId', inviterId)
+      let inviterUser = await queryInviter.first()
+      let inviterInfo = utile.getUserInfo(inviterUser)
+      let ret = {
+        inviter: inviterInfo,
+        userList: array
       }
+      resolve(ret)
     } catch (err) {
       reject(`getInviteTree err ->${err}`)
     }
