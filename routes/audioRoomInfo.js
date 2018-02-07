@@ -228,7 +228,6 @@ router.post('/room/user',
       let ret2 = await queryMember.first()
       if (ret2) {
         if (ret2.get('room').get('objectId') == roomId) {
-
           return ctx.body = {
             status: 200,
             data: roomId,
@@ -415,7 +414,7 @@ router.post('/position',
       let room = await new Room(roomId)
       if (position === '0' && operatorId !== userId) {
         if (await room.hasRight(operatorId)) { //请离需要权限
-          ret = await room.setUserPosition(userId, position)
+          let ret = await room.setUserPosition(userId, position)
           let roomMember = await room.getMember(roomId, 1)
           socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', {
             data: roomMember,
@@ -434,7 +433,7 @@ router.post('/position',
           }
         }
       } else {
-        ret = await room.setUserPosition(userId, position)
+        let ret = await room.setUserPosition(userId, position)
         let roomMember = await room.getMember(roomId, 1)
         socket.sockets.in(`room${roomId}`).emit('RoomUserChangePosition', {
           data: roomMember,
