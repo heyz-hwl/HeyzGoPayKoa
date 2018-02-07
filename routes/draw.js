@@ -634,12 +634,12 @@ router.get('/draw/record',
       query.equalTo('userId', userId)
       query.notEqualTo('type', 20)
       query.include('skin')
-      query.descending('updatedAt')
       let query1 = new AV.Query('DrawRecord')
       query1.notEqualTo('type', 21)
       let query2 = new AV.Query('DrawRecord')
       query2.notEqualTo('type', 22)
       let query3 = AV.Query.and(query, query1, query2)
+      query3.descending('updatedAt')
       let records = await query3.find()
       if (_.isEmpty(records)) {
         records = [];
