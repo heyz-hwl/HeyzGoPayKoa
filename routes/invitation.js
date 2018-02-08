@@ -120,6 +120,16 @@ router.post('/inviteCode',
       query.equalTo('HeyzId', inviteCode)
       let User = await query.first()
       if (User) {
+        let query = new AV.Query('_User')
+        query.equalTo('mobilePhoneNumber', phoneNumber)
+        let oldUser = await query.first()
+        if (oldUser) {
+          return ctx.body = {
+            status: -1,
+            data: {},
+            msg: `已经注册`
+          }
+        }
         let newUser = await AV.User.signUpOrlogInWithMobilePhone(phoneNumber, smsCode)
         let record = AV.Object.new('Invitation')
         let inviter = AV.Object.createWithoutData('_User', User.get('objectId'))
