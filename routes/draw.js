@@ -110,7 +110,7 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       });
-    } else if (drawNumber < 565) {
+    } else if (drawNumber < 282) {//565
       prize = `积分+288`;
       drawRecord.set('isDelivery', true);
       drawRecord.set('isSelected', true);
