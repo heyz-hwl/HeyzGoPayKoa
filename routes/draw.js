@@ -39,7 +39,7 @@ const draw = (userId, userGrade, user) => {
     newUser.set('grade', userGrade);
     let g = new Grade()
     let exp = user.get('exp');
-    let drawNumber = util.randomNumber(0, 182);
+    let drawNumber = util.randomNumber(0, 10000);
     if (drawNumber < 0) {  //1
       prize = `传说皮肤`;
       drawRecord.set('isDelivery', false);
