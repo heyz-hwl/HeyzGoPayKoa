@@ -80,12 +80,11 @@ router.get('/inviteCode',
   }
 )
 
-router.post('/smsCode',
+router.get('/smsCode',
   async (ctx, next) => {
     let phoneNumber = ctx.query.phoneNumber
     try {
       let ret = await AV.Cloud.requestSmsCode(phoneNumber)
-      console.log(`ret ->${JSON.stringify(ret)}`)
       if (ret) {
         return ctx.body = {
           status: 200,
