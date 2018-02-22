@@ -54,7 +54,7 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       })
-    } else if (drawNumber < 1) {  //4
+    } else if (drawNumber < 0) {  //4
       prize = `传说皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 33);
@@ -68,7 +68,7 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       });
-    } else if (drawNumber < 4) {  //8
+    } else if (drawNumber < 0) {  //8
       prize = `史诗皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 32);
@@ -82,7 +82,7 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       });
-    } else if (drawNumber < 35) {  //50
+    } else if (drawNumber < 0) {  //50
       prize = `稀有皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 31);
@@ -96,7 +96,7 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       });
-    } else if (drawNumber < 150) { //182
+    } else if (drawNumber < 70) { //182
       prize = `普通皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 30);
