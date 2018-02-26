@@ -31,7 +31,7 @@ router.prefix('/v1')
 
 //抽奖
 const draw = (userId, userGrade, user) => {
-  return new Promise(async(resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     let data = {};
     let prize;
     let drawRecord = AV.Object.new('DrawRecord');
@@ -40,7 +40,7 @@ const draw = (userId, userGrade, user) => {
     let g = new Grade()
     let exp = user.get('exp');
     let drawNumber = util.randomNumber(0, 10000);
-    if (drawNumber < 0) {  //1
+    if (drawNumber < 0) { //1
       prize = `传说皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 34);
@@ -54,7 +54,7 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       })
-    } else if (drawNumber < 0) {  //4
+    } else if (drawNumber < 0) { //4
       prize = `传说皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 33);
@@ -68,7 +68,7 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       });
-    } else if (drawNumber < 0) {  //8
+    } else if (drawNumber < 0) { //8
       prize = `史诗皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 32);
@@ -82,7 +82,7 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       });
-    } else if (drawNumber < 0) {  //50
+    } else if (drawNumber < 0) { //50
       prize = `稀有皮肤`;
       drawRecord.set('isDelivery', false);
       drawRecord.set('type', 31);
@@ -110,13 +110,13 @@ const draw = (userId, userGrade, user) => {
         exp,
         newUser
       });
-    } else if (drawNumber < 282) {//565
+    } else if (drawNumber < 282) { //565
       prize = `积分+288`;
       drawRecord.set('isDelivery', true);
       drawRecord.set('isSelected', true);
       drawRecord.set('type', 12)
       newUser.set('grade', userGrade + 288);
-      await g.recordGrade(userId, `抽奖中奖`, 288, `+`, userGrade+288)
+      await g.recordGrade(userId, `抽奖中奖`, 288, `+`, userGrade + 288)
       data.positionId = 1;
       resolve({
         drawRecord,
@@ -131,7 +131,7 @@ const draw = (userId, userGrade, user) => {
       drawRecord.set('isSelected', true);
       drawRecord.set('type', 11);
       newUser.set('grade', userGrade + 68);
-      await g.recordGrade(userId, `抽奖中奖`, 68, `+`, userGrade+68)
+      await g.recordGrade(userId, `抽奖中奖`, 68, `+`, userGrade + 68)
       data.positionId = 1;
       resolve({
         drawRecord,
@@ -146,7 +146,7 @@ const draw = (userId, userGrade, user) => {
       drawRecord.set('isSelected', true);
       drawRecord.set('type', 10)
       newUser.set('grade', userGrade + 28);
-      await g.recordGrade(userId, `抽奖中奖`, 28, `+`, userGrade+28)
+      await g.recordGrade(userId, `抽奖中奖`, 28, `+`, userGrade + 28)
       data.positionId = 6;
       resolve({
         drawRecord,
@@ -208,55 +208,55 @@ const draw = (userId, userGrade, user) => {
 //抽奖
 router.get('/draw',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     try {
-      let userId = _.get(ctx, 'decode.userId', ctx.query.userId);
-      console.log(`userId is ${userId}`)
-      if (!userId) {
-        return ctx.body = {
-          status: -1,
-          data: {},
-          msg: `no userId`
-        }
-      }
-      const gradePay = 100;
-      let query = new AV.Query('_User');
-      query.equalTo('objectId', userId);
-      let user = await query.first()
-      let userGrade = user.get('grade') - gradePay;
-      let g = new Grade()
-      await g.recordGrade(userId, `抽奖花费`, gradePay, `-`, userGrade)
-      if (userGrade < 0) {
-        return ctx.body = {
-          status: 403,
-          data: {},
-          msg: `积分不足`
-        }
-      }
-      let {
-        drawRecord,
-        data,
-        prize,
-        exp,
-        newUser
-      } =
-      await draw(userId, userGrade, user)
-      let level = await upgrade(exp, userId)
-      console.log(`level`, level)
-      newUser.set('exp', exp);
-      newUser.set('level', level);
-      result = await newUser.save()
-      drawRecord.set('userId', userId);
-      drawRecord.set('prize', prize);
-      let drawData = await drawRecord.save()
+      // let userId = _.get(ctx, 'decode.userId', ctx.query.userId);
+      // if (!userId) {
+      //   return ctx.body = {
+      //     status: -1,
+      //     data: {},
+      //     msg: `no userId`
+      //   }
+      // }
+      // const gradePay = 100;
+      // let query = new AV.Query('_User');
+      // query.equalTo('objectId', userId);
+      // let user = await query.first()
+      // let userGrade = user.get('grade') - gradePay;
+      // let g = new Grade()
+      // await g.recordGrade(userId, `抽奖花费`, gradePay, `-`, userGrade)
+      // if (userGrade < 0) {
+      //   return ctx.body = {
+      //     status: 403,
+      //     data: {},
+      //     msg: `积分不足`
+      //   }
+      // }
+      // let {
+      //   drawRecord,
+      //   data,
+      //   prize,
+      //   exp,
+      //   newUser
+      // } =
+      // // await draw(userId, userGrade, user)
+      // let level = await upgrade(exp, userId)
+      // console.log(`level`, level)
+      // newUser.set('exp', exp);
+      // newUser.set('level', level);
+      // result = await newUser.save()
+      // drawRecord.set('userId', userId);
+      // drawRecord.set('prize', prize);
+      // let drawData = await drawRecord.save()
       ctx.body = {
-        status: 200,
-        data: {
-          drawData,
-          position: data.positionId,
-          skinURL: _.get(data, 'skinURL', [])
-        },
-        msg: `success`
+        status: -1,
+        data: {},
+        // {
+        //   drawData,
+        //   position: data.positionId,
+        //   skinURL: _.get(data, 'skinURL', [])
+        // },
+        msg: `已停止该功能`
       }
     } catch (err) {
       ctx.body = {
@@ -270,7 +270,7 @@ router.get('/draw',
 //客服资料
 router.get(`/draw/kefu`,
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     try {
       let isIOS = util.isBoolean(ctx.query.isIOS)
       let result = isIOS ? retIOS : retAndroid
@@ -291,7 +291,7 @@ router.get(`/draw/kefu`,
 //获取皮肤 URL
 router.get('/draw/skinURL',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     try {
       let type = ctx.query.type;
       if (!type) {
@@ -318,8 +318,8 @@ router.get('/draw/skinURL',
 )
 
 //皮肤 URL 列表
-const getSkinURL = async(type) => {
-  return new Promise(async(resolve, reject) => {
+const getSkinURL = async (type) => {
+  return new Promise(async (resolve, reject) => {
     let data = [];
     let query = new AV.Query(`_File`);
     query.equalTo(`mime_type`, type.toString())
@@ -344,7 +344,7 @@ const getSkinURL = async(type) => {
 //用户选定皮肤奖品
 router.post('/draw/selectSkin',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     try {
       let data = ctx.request.body
       let drawRecordId = data.drawRecordId
@@ -371,7 +371,7 @@ router.post('/draw/selectSkin',
           msg: `已经选择了皮肤,如需修改请联系客服`
         }
       }
-      if(![30, 31, 32, 33, 34].includes(Record.get('type'))){
+      if (![30, 31, 32, 33, 34].includes(Record.get('type'))) {
         return ctx.body = {
           status: 1005,
           data: {},
@@ -405,7 +405,7 @@ router.post('/draw/selectSkin',
 //用户选定皮肤奖品
 router.put('/draw/selectSkin',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     try {
       let data = ctx.request.body
       let drawRecordId = data.drawRecordId
@@ -432,7 +432,7 @@ router.put('/draw/selectSkin',
           msg: `已经选择了皮肤,如需修改请联系客服`
         }
       }
-      if(![30, 31, 32, 33, 34].includes(Record.get('type'))){
+      if (![30, 31, 32, 33, 34].includes(Record.get('type'))) {
         return ctx.body = {
           status: 1005,
           data: {},
@@ -465,7 +465,7 @@ router.put('/draw/selectSkin',
 
 //查看未发货的获奖记录
 router.get('/draw/willDelivery',
-  async(ctx, next) => {
+  async (ctx, next) => {
     try {
       let isIOS = util.isBoolean(ctx.query.isIOS)
       let addFriend = util.isBoolean(ctx.query.addFriend)
@@ -512,8 +512,8 @@ router.get('/draw/willDelivery',
       } else {
         result = await query.find()
       }
-      result.forEach(async(item, index) => {
-        promise.push(new Promise(async(resolve, reject) => {
+      result.forEach(async (item, index) => {
+        promise.push(new Promise(async (resolve, reject) => {
           try {
             let query = new AV.Query('_User')
             query.equalTo('objectId', item.get('userId'))
@@ -546,7 +546,7 @@ router.get('/draw/willDelivery',
   })
 
 //切换奖品发货状态
-router.post('/draw/delivery', async(ctx, next) => {
+router.post('/draw/delivery', async (ctx, next) => {
   try {
     let drawRecordId = ctx.request.body.drawRecordId
     let status = ctx.request.body.status
@@ -604,7 +604,7 @@ router.post('/draw/delivery', async(ctx, next) => {
   }
 })
 
-router.post('/draw/wechat', async(ctx, next) => {
+router.post('/draw/wechat', async (ctx, next) => {
   let drawRecordId = ctx.request.body.drawRecordId
   let wechat = ctx.request.body.wechat
   let drawRecord = AV.Object.createWithoutData('DrawRecord', drawRecordId)
@@ -620,7 +620,7 @@ router.post('/draw/wechat', async(ctx, next) => {
 //获取用户获奖记录
 router.get('/draw/record',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     try {
       let userId = _.get(ctx, 'decode.userId', ctx.query.userId);
       if (!userId) {
@@ -665,7 +665,7 @@ router.get('/draw/record',
 )
 
 router.get(`/drawGradeInfo`,
-  async(ctx, next) => {
+  async (ctx, next) => {
     const arr = [60, 200, 400, 600, 1000]
     ctx.body = {
       status: 200,
@@ -678,7 +678,7 @@ router.get(`/drawGradeInfo`,
 //获取抽奖信息
 router.get('/drawInfo',
   jwt.verify,
-  async(ctx, next) => {
+  async (ctx, next) => {
     let data = [
       prize1, prize2, prize3, prize4, prize6, prize7, prize8, prize9
     ];
